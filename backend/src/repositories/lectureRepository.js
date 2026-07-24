@@ -1,0 +1,44 @@
+const pool = require('../config/db');
+
+async function getLecturesByWeek(weekId) {
+    const result = await pool.query(
+        `SELECT id, week_id, title, description, video_url, duration_minutes, lecture_order, is_active
+         FROM lectures WHERE week_id = $1 AND is_active = true ORDER BY lecture_order ASC`,
+        [weekId]
+    );
+    return result.rows;
+}
+
+async function getLectureById(id) {
+    const result = await pool.query(
+        `SELECT id, week_id, title, description, video_url, duration_minutes, lecture_order, is_active
+         FROM lectures WHERE id = $1`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+async function isValidWeek(weekId) {
+    const result = await pool.query('SELECT id FROM weeks WHERE id = $1 AND is_active = true', [weekId]);
+    return result.rows.length > 0;
+}
+
+async function createLecture({ week_id, title, description, video_url, duration_minutes, lecture_order }) {
+    const result = await pool.query(
+        `INSERT INTO lectures (week_id, title, description, video_url, duration_minutes, lecture_order)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id, week_id, title, description, video_url, duration_minutes, lecture_order`,
+        [week_id, title, description || null, video_url || null, duration_minutes || null, lecture_order || 1]
+    );
+    return result.rows[0];
+}
+
+async function deactivateLecture(id) {
+    const result = await pool.query(
+        `UPDATE lectures SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, title, is_active`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, deactivateLecture };

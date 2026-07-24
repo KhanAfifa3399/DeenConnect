@@ -1,0 +1,144 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.page {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background: url('/login-bg.jpg') center/cover no-repeat;;
+  object-position: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.composition {
+  position: relative;
+  width: min(80vw, 780px);
+  height: min(72vh, 460px);
+}
+
+.photoCard {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90%;
+  height: 100%;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.photoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    200deg,
+    rgba(10, 46, 54, 0.15) 0%,
+    rgba(10, 46, 54, 0.75) 75%
+  );
+}
+
+.photoHeading {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-size: clamp(1rem, 5vw, 2.25rem);
+  line-height: 0.95;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.photoLink {
+  position: absolute;
+  bottom: var(--space-6);
+  left: var(--space-8);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  padding-bottom: 2px;
+}
+
+.formCard {
+  position: absolute;
+  top: 25%;
+  right: 0;
+  width: 46%;
+  height: 76%;
+  background-color: var(--color-primary-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.underlineLabel {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 1.5px;
+  color: var(--color-accent-light);
+}
+
+.underlineInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  color: var(--color-white);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  padding: var(--space-2) 0;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.underlineInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.underlineInput:focus {
+  border-bottom-color: var(--color-accent-light);
+}
+
+.errorText {
+  color: #FF8A80;
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+.submitButton {
+  margin-top: var(--space-2);
+  align-self: flex-start;
+  border-radius: var(--radius-full);
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
