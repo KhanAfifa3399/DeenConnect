@@ -48,4 +48,19 @@ async function deleteLecture(req, res) {
     }
 }
 
-module.exports = { getLecturesByWeek, createLecture, deleteLecture };
+async function updateLecture(req, res) {
+    try {
+        const { title, description, lecture_order } = req.body;
+        const updated = await lectureRepository.updateLecture(req.params.id, { title, description, lecture_order });
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Lecture not found' });
+        }
+        res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        console.error('Error updating lecture:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to update lecture' });
+    }
+}
+
+module.exports = { getLecturesByWeek, createLecture, updateLecture, deleteLecture };
+// module.exports = { getLecturesByWeek, createLecture, deleteLecture };

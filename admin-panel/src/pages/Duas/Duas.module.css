@@ -1,0 +1,79 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.duaCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.duaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.duaTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.duaActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.arabicText {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: var(--color-primary-dark);
+  text-align: right;
+  margin: 0;
+}
+
+.transliteration {
+  font-size: var(--font-size-xs);
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.translation {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.duaFooter {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.categoryTag {
+  background-color: var(--color-accent-light);
+  color: var(--color-primary-dark);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.reference {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+}
+
+.emptyText {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--space-8) 0;
+}

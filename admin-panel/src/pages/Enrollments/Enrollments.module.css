@@ -1,0 +1,111 @@
+.filterCard {
+  margin-bottom: var(--space-5);
+  max-width: 480px;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.summaryItem {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 4px solid var(--color-gray-300);
+}
+
+.summaryItem.active {
+  border-left-color: var(--color-primary);
+}
+
+.summaryItem.completed {
+  border-left-color: var(--color-success);
+}
+
+.summaryItem.dropped {
+  border-left-color: var(--color-error);
+}
+
+.summaryValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.summaryLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.placeholderText {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--space-8) 0;
+}
+
+.badge_active {
+  background-color: rgba(42, 90, 109, 0.1);
+  color: var(--color-primary);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: capitalize;
+}
+
+.badge_completed {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--color-success);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: capitalize;
+}
+
+.badge_dropped {
+  background-color: rgba(211, 47, 47, 0.08);
+  color: var(--color-error);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: capitalize;
+}
+
+.progressWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 120px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 6px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  min-width: 32px;
+}

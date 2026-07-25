@@ -41,4 +41,16 @@ async function deactivateLecture(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, deactivateLecture };
+async function updateLecture(id, { title, description, lecture_order }) {
+    const result = await pool.query(
+        `UPDATE lectures
+         SET title = $1, description = $2, lecture_order = $3, updated_at = NOW()
+         WHERE id = $4
+         RETURNING id, week_id, title, description, video_url, duration_minutes, lecture_order`,
+        [title, description || null, lecture_order, id]
+    );
+    return result.rows[0] || null;
+}
+
+module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, updateLecture, deactivateLecture };
+// module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, deactivateLecture };

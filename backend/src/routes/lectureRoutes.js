@@ -7,5 +7,6 @@ const upload = require('../config/multer');
 router.get('/week/:weekId', lectureController.getLecturesByWeek);
 router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('video'), lectureController.createLecture);
 router.delete('/:id', authenticate, authorize('admin', 'teacher'), lectureController.deleteLecture);
+router.put('/:id', authenticate, authorize('admin', 'teacher'), lectureController.updateLecture);
 
 module.exports = router;

@@ -8,6 +8,11 @@ const courseRoutes = require('./routes/courseRoutes');
 const lectureRoutes = require('./routes/lectureRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const liveSessionRoutes = require('./routes/liveSessionRoutes');
+const weekRoutes = require('./routes/weekRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const quranContentRoutes = require('./routes/quranContentRoutes');
+const dailySurahRoutes = require('./routes/dailySurahRoutes');
+const duaRoutes = require('./routes/duaRoutes');
 
 const app = express();
 
@@ -30,5 +35,10 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/lectures', lectureRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/live-sessions', liveSessionRoutes);
+app.use('/api/weeks', weekRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/quran-content', quranContentRoutes);
+app.use('/api/daily-surahs', dailySurahRoutes);
+app.use('/api/duas', duaRoutes);
 
 module.exports = app;
