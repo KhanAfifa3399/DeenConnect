@@ -1,0 +1,56 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.logRow {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.logRow:last-child {
+  border-bottom: none;
+}
+
+.logIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-gray-100);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+}
+
+.logBody {
+  flex: 1;
+}
+
+.logAction {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.logDetails {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.logTime {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-400);
+  margin: 4px 0 0 0;
+}
+
+.emptyText {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--space-8) 0;
+}

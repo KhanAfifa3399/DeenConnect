@@ -18,3 +18,15 @@ export async function getTeachers() {
   const response = await axiosClient.get('/users');
   return response.data.data.filter((u) => u.role === 'teacher' && u.is_active);
 }
+
+export async function changePassword(currentPassword, newPassword) {
+  const response = await axiosClient.put('/users/me/password', { currentPassword, newPassword });
+  return response.data;
+}
+
+export async function uploadProfilePhoto(formData) {
+  const response = await axiosClient.put('/users/me/photo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.data;
+}

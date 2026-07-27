@@ -64,7 +64,7 @@ function Duas() {
       ) : duas.length === 0 ? (
         <Card><p className={duaStyles.emptyText}>No duas added yet.</p></Card>
       ) : (
-        <div className={duaStyles.grid}>
+        <div className={duaStyles.list}>
           {duas.map((dua) => (
             <Card key={dua.id} className={duaStyles.duaCard}>
               <div className={duaStyles.duaHeader}>

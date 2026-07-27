@@ -28,4 +28,16 @@ async function deactivate(id) {
     return result.rows[0] || null;
 }
 
+async function upsertContent(type, number, name, pdfUrl) {
+    const result = await pool.query(
+        `INSERT INTO quran_content (type, number, name, pdf_url, is_active)
+         VALUES ($1, $2, $3, $4, true)
+         ON CONFLICT (type, number)
+         DO UPDATE SET name = $3, pdf_url = $4, is_active = true, updated_at = NOW()
+         RETURNING id, type, number, name, pdf_url`,
+        [type, number, name, pdfUrl]
+    );
+    return result.rows[0];
+}
+
 module.exports = { getAllByType, upsertContent, deactivate };

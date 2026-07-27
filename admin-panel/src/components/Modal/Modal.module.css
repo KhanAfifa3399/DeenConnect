@@ -49,8 +49,8 @@
 
 .modalWide {
   max-width: 640px;
-  max-height: 96vh;
-  padding: var(--space-4) var(--space-5);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modalWide .header {
   margin-bottom: var(--space-3);

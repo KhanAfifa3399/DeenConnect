@@ -6,6 +6,7 @@ import { getContentByType, deleteQuranContent } from '../../api/quranContentApi'
 import UploadQuranModal from './UploadQuranModal';
 import styles from '../Subjects/Subjects.module.css';
 import qStyles from './QuranContent.module.css';
+import { getFileUrl } from '../../utils/urls';
 
 function QuranContent() {
   const [activeTab, setActiveTab] = useState('surah');
@@ -81,7 +82,7 @@ function QuranContent() {
                   <p className={qStyles.contentName}>{item.name}</p>
                 </div>
                 <div className={qStyles.contentActions}>
-                  <a href={item.pdf_url} target="_blank" rel="noopener noreferrer" className={qStyles.viewLink}>
+                  <a href={getFileUrl(item.pdf_url)} target="_blank" rel="noopener noreferrer" className={qStyles.viewLink}>
                     View
                   </a>
                   <button className={styles.iconButtonDanger} onClick={() => handleDelete(item)}>

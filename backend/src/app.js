@@ -13,9 +13,13 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const quranContentRoutes = require('./routes/quranContentRoutes');
 const dailySurahRoutes = require('./routes/dailySurahRoutes');
 const duaRoutes = require('./routes/duaRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
+
+
 
 const app = express();
-
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true,
@@ -40,5 +44,8 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/quran-content', quranContentRoutes);
 app.use('/api/daily-surahs', dailySurahRoutes);
 app.use('/api/duas', duaRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/reports', reportsRoutes);
 
 module.exports = app;

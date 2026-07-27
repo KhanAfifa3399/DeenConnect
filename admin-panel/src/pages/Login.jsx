@@ -4,6 +4,7 @@ import Button from '../components/Button/Button';
 import { login } from '../api/authApi';
 import styles from './Login.module.css';
 import cardImg from '../assets/login-card-img.png';
+import toast from 'react-hot-toast';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+ async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -21,14 +22,16 @@ function Login() {
       const result = await login(email, password);
       localStorage.setItem('token', result.data.token);
       localStorage.setItem('user', JSON.stringify(result.data.user));
+      toast.success(`Welcome back, ${result.data.user.full_name}!`);
       navigate('/dashboard');
     } catch (err) {
-      const message = err.response?.data?.message || 'Invalid credentials';
+      const message = err.response?.data?.message || 'Something went wrong. Please try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  }
+}
 
   return (
     <div className={styles.page}>

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/userRepository');
+const activityLogRepository = require('../repositories/activityLogRepository');
 
 async function login(req, res) {
     try {
@@ -25,7 +26,7 @@ async function login(req, res) {
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
-
+        await activityLogRepository.log(user.id, 'User logged in', 'user', user.id, `${user.email} logged in`);
         res.status(200).json({
             success: true,
             data: {

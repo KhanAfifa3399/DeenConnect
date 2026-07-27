@@ -1,4 +1,5 @@
 const courseRepository = require('../repositories/courseRepository');
+const activityLogRepository = require('../repositories/activityLogRepository');
 
 async function getCourses(req, res) {
     try {
@@ -40,7 +41,8 @@ async function createCourse(req, res) {
         const newCourse = await courseRepository.createCourse({
             subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price,
         });
-
+        await activityLogRepository.log(req.user.userId, 'Created course', 'course', newCourse.id, `Created course: ${newCourse.title}`);
+        // await activityLogRepository.log(<who did it>, '<short action description>', '<entity type>', <entity id>, '<human-readable details>');
         res.status(201).json({ success: true, data: newCourse });
     } catch (error) {
         if (error.code === '23505') {

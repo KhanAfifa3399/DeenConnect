@@ -5,6 +5,10 @@ import Button from '../../components/Button/Button';
 import { getAllSubjects, deleteSubject } from '../../api/subjectsApi';
 import SubjectModal from './SubjectModal';
 import styles from './Subjects.module.css';
+import toast from 'react-hot-toast';
+// ...
+
+
 
 function Subjects() {
   const [subjects, setSubjects] = useState([]);
@@ -38,22 +42,24 @@ function Subjects() {
     setModalOpen(true);
   }
 
-  async function handleDelete(subject) {
+async function handleDelete(subject) {
     const confirmed = window.confirm(`Deactivate "${subject.name}"? This can be reversed later.`);
     if (!confirmed) return;
 
     try {
       await deleteSubject(subject.id);
+      toast.success(`"${subject.name}" was removed.`);
       loadSubjects();
     } catch (err) {
-      alert('Failed to delete subject');
+      toast.error('Failed to delete subject');
     }
-  }
+}
 
-  function handleSaved() {
+function handleSaved() {
     setModalOpen(false);
+    toast.success(editingSubject ? 'Subject updated successfully.' : 'Subject created successfully.');
     loadSubjects();
-  }
+}
 
   return (
     <div>

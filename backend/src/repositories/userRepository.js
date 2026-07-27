@@ -56,4 +56,20 @@ async function deactivateUser(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { getAllUsers, getUserById, getUserByEmail, createUser, updateUser, deactivateUser };
+async function updatePassword(id, hashedPassword) {
+    const result = await pool.query(
+        'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2 RETURNING id',
+        [hashedPassword, id]
+    );
+    return result.rows[0] || null;
+}
+
+async function updateProfilePicture(id, profilePictureUrl) {
+    const result = await pool.query(
+        'UPDATE users SET profile_picture = $1, updated_at = NOW() WHERE id = $2 RETURNING id, profile_picture',
+        [profilePictureUrl, id]
+    );
+    return result.rows[0] || null;
+}
+
+module.exports = { getAllUsers, getUserById, getUserByEmail, createUser, updateUser, updatePassword, updateProfilePicture, deactivateUser };

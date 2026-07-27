@@ -1,4 +1,5 @@
 const subjectRepository = require('../repositories/subjectRepository');
+const activityLogRepository = require('../repositories/activityLogRepository');
 
 async function getSubjects(req, res) {
     try {
@@ -24,6 +25,8 @@ async function createSubject(req, res) {
             success: true,
             data: newSubject,
         });
+
+        await activityLogRepository.log(req.user.userId, 'Created subject', 'subject', newSubject.id, `Created subject: ${newSubject.name}`);
     } catch (error) {
         if (error.code === '23505') {
             return res.status(409).json({

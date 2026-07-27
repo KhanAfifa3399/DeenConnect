@@ -1,23 +1,25 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--space-4);
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .duaCard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .duaHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-gray-100);
 }
 
 .duaTitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
@@ -28,16 +30,8 @@
   gap: var(--space-2);
 }
 
-.arabicText {
-  font-size: 1.25rem;
-  line-height: 1.8;
-  color: var(--color-primary-dark);
-  text-align: right;
-  margin: 0;
-}
-
 .transliteration {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-style: italic;
   color: var(--text-secondary);
   margin: 0;
@@ -48,19 +42,21 @@
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-relaxed);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-gray-100);
 }
 
 .duaFooter {
   display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  margin-top: var(--space-2);
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
 }
 
 .categoryTag {
   background-color: var(--color-accent-light);
   color: var(--color-primary-dark);
-  padding: 2px var(--space-3);
+  padding: 3px var(--space-3);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
@@ -76,4 +72,16 @@
   text-align: center;
   color: var(--text-secondary);
   padding: var(--space-8) 0;
+}
+
+.arabicText {
+  font-family: var(--font-family-arabic);
+  font-size: 1.5rem;
+  line-height: 2.2;
+  color: var(--color-primary-dark);
+  text-align: right;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  margin: 0;
+  padding: var(--space-3) 0;
 }
