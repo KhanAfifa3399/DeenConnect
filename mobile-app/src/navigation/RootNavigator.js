@@ -1,44 +1,25 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
 import SplashScreen from '../screens/SplashScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import LoginScreen from '../screens/LoginScreen';
+import StudentTabNavigator from './StudentTabNavigator';
+import TeacherTabNavigator from './TeacherTabNavigator';
 
 const Stack = createNativeStackNavigator();
-
-function PlaceholderScreen({ route }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>{route.name} Screen</Text>
-    </View>
-  );
-}
 
 function RootNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
         <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Onboarding" component={PlaceholderScreen} />
-        <Stack.Screen name="Login" component={PlaceholderScreen} />
-        <Stack.Screen name="Dashboard" component={PlaceholderScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="StudentApp" component={StudentTabNavigator} />
+        <Stack.Screen name="TeacherApp" component={TeacherTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    backgroundColor: colors.gray50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-});
 
 export default RootNavigator;
