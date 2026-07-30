@@ -5,6 +5,11 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import StudentTabNavigator from './StudentTabNavigator';
 import TeacherTabNavigator from './TeacherTabNavigator';
+import CourseDetailsScreen from '../screens/student/CourseDetailsScreen';
+import LecturePlayerScreen from '../screens/student/LecturePlayerScreen';
+import EditProfileScreen from '../screens/student/EditProfileScreen';
+import ChangePasswordScreen from '../screens/student/ChangePasswordScreen';
+import NotificationsScreen from '../screens/student/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +22,12 @@ function RootNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="StudentApp" component={StudentTabNavigator} />
         <Stack.Screen name="TeacherApp" component={TeacherTabNavigator} />
+
+        <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
+        <Stack.Screen name="LecturePlayer" component={LecturePlayerScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

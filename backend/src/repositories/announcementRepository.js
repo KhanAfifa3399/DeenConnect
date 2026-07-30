@@ -31,4 +31,20 @@ async function deactivate(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { getAll, create, deactivate };
+async function getForStudent(studentId) {
+    const result = await pool.query(
+        `SELECT DISTINCT a.id, a.title, a.message, a.audience, a.created_at, a.course_id, c.title AS course_title
+         FROM announcements a
+         LEFT JOIN courses c ON a.course_id = c.id
+         LEFT JOIN enrollments e ON e.course_id = a.course_id AND e.student_id = $1
+         WHERE a.is_active = true
+           AND (a.audience = 'all' OR a.audience = 'students')
+           AND (a.course_id IS NULL OR e.id IS NOT NULL)
+         ORDER BY a.created_at DESC
+         LIMIT 30`,
+        [studentId]
+    );
+    return result.rows;
+}
+
+module.exports = { getAll, create, deactivate, getForStudent };

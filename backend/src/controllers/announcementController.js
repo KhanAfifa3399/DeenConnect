@@ -35,4 +35,14 @@ async function remove(req, res) {
     }
 }
 
-module.exports = { getAll, create, remove };
+async function getForStudent(req, res) {
+    try {
+        const announcements = await announcementRepository.getForStudent(req.user.userId);
+        res.status(200).json({ success: true, data: announcements });
+    } catch (error) {
+        console.error('Error fetching student announcements:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch announcements' });
+    }
+}
+
+module.exports = { getAll, create, remove, getForStudent };

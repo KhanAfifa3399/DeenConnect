@@ -5,6 +5,8 @@ import StudentDashboardScreen from '../screens/student/StudentDashboardScreen';
 import CoursesStackNavigator from './CoursesStackNavigator';
 import QuranScreen from '../screens/student/QuranScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
+// import ProfileStackNavigator from './ProfileStackNavigator';
+// ...
 
 const Tab = createBottomTabNavigator();
 
@@ -37,7 +39,9 @@ function StudentTabNavigator() {
       <Tab.Screen name="Dashboard" component={StudentDashboardScreen} />
       <Tab.Screen name="My Courses" component={CoursesStackNavigator} />
       <Tab.Screen name="Quran" component={QuranScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+
     </Tab.Navigator>
   );
 }

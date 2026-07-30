@@ -10,7 +10,7 @@ async function getAllUsers() {
 
 async function getUserById(id) {
     const result = await pool.query(
-        `SELECT id, full_name, email, role, phone, profile_picture, is_active, email_verified, created_at
+        `SELECT id, full_name, email, role, phone, city, state, address, education, marital_status, profile_picture, is_active, email_verified, created_at
          FROM users WHERE id = $1`,
         [id]
     );
@@ -35,13 +35,13 @@ async function createUser({ full_name, email, hashedPassword, role, phone }) {
     return result.rows[0];
 }
 
-async function updateUser(id, { full_name, phone }) {
+async function updateUser(id, { full_name, phone, city, state, address, education, marital_status }) {
     const result = await pool.query(
         `UPDATE users
-         SET full_name = $1, phone = $2, updated_at = NOW()
-         WHERE id = $3
-         RETURNING id, full_name, email, role, phone, is_active, email_verified, updated_at`,
-        [full_name, phone || null, id]
+         SET full_name = $1, phone = $2, city = $3, state = $4, address = $5, education = $6, marital_status = $7, updated_at = NOW()
+         WHERE id = $8
+         RETURNING id, full_name, email, role, phone, city, state, address, education, marital_status, is_active, updated_at`,
+        [full_name, phone || null, city || null, state || null, address || null, education || null, marital_status || null, id]
     );
     return result.rows[0] || null;
 }

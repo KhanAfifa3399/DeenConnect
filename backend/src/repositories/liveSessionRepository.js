@@ -23,7 +23,7 @@ async function getUpcomingSessionsForStudent(studentId) {
     const result = await pool.query(
         `SELECT ls.id, ls.title, ls.meeting_platform, ls.meeting_link, ls.scheduled_at, ls.duration_minutes, ls.status,
                 c.id AS course_id, c.title AS course_title,
-                w.week_number
+                w.id AS week_id, w.week_number
          FROM live_sessions ls
          JOIN weeks w ON ls.week_id = w.id
          JOIN courses c ON w.course_id = c.id

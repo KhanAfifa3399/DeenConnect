@@ -21,3 +21,12 @@ export async function clearAuth() {
   await SecureStore.deleteItemAsync('token');
   await SecureStore.deleteItemAsync('user');
 }
+
+export async function getLastSeenNotifTime() {
+  const val = await SecureStore.getItemAsync('notif_last_seen');
+  return val || null;
+}
+
+export async function setLastSeenNotifTime() {
+  await SecureStore.setItemAsync('notif_last_seen', new Date().toISOString());
+}

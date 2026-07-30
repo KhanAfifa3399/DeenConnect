@@ -1,11 +1,11 @@
 const pool = require('../config/db');
 
-async function enrollStudent(studentId, courseId) {
+async function enrollStudent(studentId, courseId, notes) {
     const result = await pool.query(
-        `INSERT INTO enrollments (student_id, course_id)
-         VALUES ($1, $2)
-         RETURNING id, student_id, course_id, enrolled_at, status, progress_percentage`,
-        [studentId, courseId]
+        `INSERT INTO enrollments (student_id, course_id, notes)
+         VALUES ($1, $2, $3)
+         RETURNING id, student_id, course_id, enrolled_at, status, progress_percentage, notes`,
+        [studentId, courseId, notes || null]
     );
     return result.rows[0];
 }

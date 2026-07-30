@@ -4,7 +4,7 @@ const courseRepository = require('../repositories/courseRepository');
 async function enrollInCourse(req, res) {
     try {
         const studentId = req.user.userId;
-        const { course_id } = req.body;
+        const { course_id, notes } = req.body;
 
         const course = await courseRepository.getCourseById(course_id);
         if (!course) {
@@ -16,7 +16,7 @@ async function enrollInCourse(req, res) {
             return res.status(409).json({ success: false, message: 'You are already enrolled in this course' });
         }
 
-        const enrollment = await enrollmentRepository.enrollStudent(studentId, course_id);
+        const enrollment = await enrollmentRepository.enrollStudent(studentId, course_id, notes);
         res.status(201).json({ success: true, data: enrollment });
     } catch (error) {
         console.error('Error enrolling in course:', error.message);

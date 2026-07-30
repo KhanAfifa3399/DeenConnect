@@ -6,5 +6,6 @@ const { authenticate, authorize } = require('../middlewares/authMiddleware');
 router.get('/', authenticate, announcementController.getAll);
 router.post('/', authenticate, authorize('admin', 'teacher'), announcementController.create);
 router.delete('/:id', authenticate, authorize('admin', 'teacher'), announcementController.remove);
+router.get('/student', authenticate, announcementController.getForStudent);
 
 module.exports = router;

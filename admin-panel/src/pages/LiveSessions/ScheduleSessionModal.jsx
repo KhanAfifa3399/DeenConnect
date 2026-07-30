@@ -18,8 +18,10 @@ function ScheduleSessionModal({ onClose, onSaved }) {
   const [description, setDescription] = useState('');
   const [meetingPlatform, setMeetingPlatform] = useState('zoom');
   const [meetingLink, setMeetingLink] = useState('');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState('45');
+  const [sessionDate, setSessionDate] = useState('');
+const [sessionHour, setSessionHour] = useState('17');
+const [sessionMinute, setSessionMinute] = useState('00'); 
+ const [durationMinutes, setDurationMinutes] = useState('45');
   const [loadingWeeks, setLoadingWeeks] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -42,11 +44,19 @@ function ScheduleSessionModal({ onClose, onSaved }) {
       .finally(() => setLoadingWeeks(false));
   }, [courseId]);
 
-  async function handleSubmit(e) {
+async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setSaving(true);
 
+    if (!sessionDate) {
+      setError('Please select a date.');
+      return;
+    }
+
+    const paddedTime = `${sessionHour.padStart(2, '0')}:${sessionMinute.padStart(2, '0')}`;
+    const isoString = new Date(`${sessionDate}T${paddedTime}:00`).toISOString();
+
+    setSaving(true);
     try {
       await createLiveSession({
         week_id: Number(weekId),
@@ -54,7 +64,7 @@ function ScheduleSessionModal({ onClose, onSaved }) {
         description,
         meeting_platform: meetingPlatform,
         meeting_link: meetingLink,
-        scheduled_at: new Date(scheduledAt).toISOString(),
+        scheduled_at: isoString,
         duration_minutes: Number(durationMinutes),
       });
       onSaved();
@@ -63,7 +73,7 @@ function ScheduleSessionModal({ onClose, onSaved }) {
     } finally {
       setSaving(false);
     }
-  }
+}
 
   const courseOptions = courses.map((c) => ({ value: c.id, label: c.title }));
   const weekOptions = weeks.map((w) => ({ value: w.id, label: w.title }));
@@ -127,24 +137,39 @@ function ScheduleSessionModal({ onClose, onSaved }) {
           />
         </div>
 
-        <div className={courseStyles.grid2}>
-          <Input
-            label="Date & Time"
-            id="scheduledAt"
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            required
-          />
-          <Input
-            label="Duration (minutes)"
-            id="duration"
-            type="number"
-            min="1"
-            value={durationMinutes}
-            onChange={(e) => setDurationMinutes(e.target.value)}
-          />
-        </div>
+       <div className={courseStyles.grid3}>
+  <Input
+    label="Date"
+    id="sessionDate"
+    type="date"
+    value={sessionDate}
+    onChange={(e) => setSessionDate(e.target.value)}
+    required
+  />
+  <Select
+    label="Hour (24h)"
+    id="sessionHour"
+    options={Array.from({ length: 24 }, (_, i) => ({ value: String(i), label: String(i).padStart(2, '0') }))}
+    value={sessionHour}
+    onChange={(e) => setSessionHour(e.target.value)}
+  />
+  <Select
+    label="Minute"
+    id="sessionMinute"
+    options={['00', '15', '30', '45'].map((m) => ({ value: m, label: m }))}
+    value={sessionMinute}
+    onChange={(e) => setSessionMinute(e.target.value)}
+  />
+</div>
+
+        <Input
+          label="Duration (minutes)"
+          id="duration"
+          type="number"
+          min="1"
+          value={durationMinutes}
+          onChange={(e) => setDurationMinutes(e.target.value)}
+        />
 
         {error && <p className={styles.errorText}>{error}</p>}
 

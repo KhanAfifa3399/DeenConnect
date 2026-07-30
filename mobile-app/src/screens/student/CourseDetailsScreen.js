@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Platform, UIManager, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -8,29 +8,43 @@ import { spacing } from '../../theme/spacing';
 import { getCourseById } from '../../api/coursesApi';
 import { getWeeksByCourse } from '../../api/weeksApi';
 import { getLecturesByWeek } from '../../api/lecturesApi';
+import EnrollModal from './EnrollModal';
+// import { Alert } from 'react-native';
+import { getMyEnrollments, enrollInCourse } from '../../api/enrollmentsApi';
+import { getSessionsByWeek } from '../../api/liveSessionsApi';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 function CourseDetailsScreen({ route, navigation }) {
-  const { courseId, courseTitle } = route.params;
+  const { courseId, courseTitle, targetWeekId } = route.params;
   const [course, setCourse] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedWeek, setExpandedWeek] = useState(null);
   const [lecturesByWeek, setLecturesByWeek] = useState({});
   const [loadingWeekId, setLoadingWeekId] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollModalVisible, setEnrollModalVisible] = useState(false);
+  const [sessionsByWeek, setSessionsByWeek] = useState({});
 
   useEffect(() => {
     async function load() {
       try {
-        const [courseData, weeksData] = await Promise.all([
+        const [courseData, weeksData, myEnrollments] = await Promise.all([
           getCourseById(courseId),
           getWeeksByCourse(courseId),
+          getMyEnrollments(),
         ]);
         setCourse(courseData);
         setWeeks(weeksData);
+        setIsEnrolled(myEnrollments.some((e) => e.course_id === courseId));
+
+        if (targetWeekId) {
+          toggleWeek(targetWeekId);
+        }
       } catch (err) {
         console.error('Failed to load course details:', err);
       } finally {
@@ -40,7 +54,20 @@ function CourseDetailsScreen({ route, navigation }) {
     load();
   }, [courseId]);
 
-  async function toggleWeek(weekId) {
+  // async function handleEnroll() {
+  //   setEnrolling(true);
+  //   try {
+  //     await enrollInCourse(courseId);
+  //     setIsEnrolled(true);
+  //     Alert.alert('Enrolled!', 'You have successfully enrolled in this course.');
+  //   } catch (err) {
+  //     Alert.alert('Error', err.response?.data?.message || 'Failed to enroll');
+  //   } finally {
+  //     setEnrolling(false);
+  //   }
+  // }
+
+async function toggleWeek(weekId) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (expandedWeek === weekId) {
@@ -52,15 +79,19 @@ function CourseDetailsScreen({ route, navigation }) {
     if (!lecturesByWeek[weekId]) {
       setLoadingWeekId(weekId);
       try {
-        const lectures = await getLecturesByWeek(weekId);
+        const [lectures, sessions] = await Promise.all([
+          getLecturesByWeek(weekId),
+          getSessionsByWeek(weekId),
+        ]);
         setLecturesByWeek((prev) => ({ ...prev, [weekId]: lectures }));
+        setSessionsByWeek((prev) => ({ ...prev, [weekId]: sessions }));
       } catch (err) {
-        console.error('Failed to load lectures:', err);
+        console.error('Failed to load week content:', err);
       } finally {
         setLoadingWeekId(null);
       }
     }
-  }
+}
 
   if (loading) {
     return (
@@ -92,6 +123,17 @@ function CourseDetailsScreen({ route, navigation }) {
             <Text style={styles.metaText}>{course?.total_weeks} weeks</Text>
           </View>
         </View>
+        {!isEnrolled ? (
+          <Pressable style={styles.enrollButton} onPress={() => setEnrollModalVisible(true)}>
+            <Feather name="plus-circle" size={16} color={colors.white} />
+            <Text style={styles.enrollButtonText}>Enroll Now</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.enrolledBanner}>
+            <Feather name="check-circle" size={16} color={colors.success} />
+            <Text style={styles.enrolledBannerText}>You're enrolled in this course</Text>
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Course Content</Text>
 
@@ -105,7 +147,35 @@ function CourseDetailsScreen({ route, navigation }) {
                 <Text style={styles.weekTitle}>{week.title}</Text>
                 <Text style={styles.weekCount}>{weekLectures?.length ?? ''}</Text>
               </Pressable>
-
+{sessionsByWeek[week.id]?.length > 0 && (
+  <View style={styles.sessionsSection}>
+    <Text style={styles.sessionsSectionTitle}>Live Sessions</Text>
+    {sessionsByWeek[week.id].map((session) => {
+      const sessionDate = new Date(session.scheduled_at);
+      return (
+        <View key={session.id} style={styles.sessionRow}>
+          <View style={styles.sessionIconWrap}>
+            <Feather name="radio" size={16} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sessionRowTitle}>{session.title}</Text>
+            <Text style={styles.sessionRowMeta}>
+              {sessionDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} at{' '}
+              {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          {session.status === 'ongoing' ? (
+            <View style={styles.joinBadge}>
+              <Text style={styles.joinBadgeText}>LIVE · JOIN</Text>
+            </View>
+          ) : (
+            <Text style={styles.scheduledText}>Scheduled</Text>
+          )}
+        </View>
+      );
+    })}
+  </View>
+)}
               {isExpanded && (
                 <View style={styles.lecturesList}>
                   {loadingWeekId === week.id ? (
@@ -138,7 +208,17 @@ function CourseDetailsScreen({ route, navigation }) {
           );
         })}
       </ScrollView>
+      <EnrollModal
+        visible={enrollModalVisible}
+        course={course}
+        onClose={() => setEnrollModalVisible(false)}
+        onEnrolled={() => {
+          setEnrollModalVisible(false);
+          setIsEnrolled(true);
+        }}
+      />
     </SafeAreaView>
+
   );
 }
 
@@ -160,6 +240,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.space3, paddingVertical: 3, borderRadius: spacing.radiusFull, marginBottom: spacing.space3,
     overflow: 'hidden',
   },
+  enrollButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space2,
+    backgroundColor: colors.primary, borderRadius: spacing.radiusFull, paddingVertical: spacing.space3, marginTop: spacing.space4,
+  },
+  enrollButtonText: { color: colors.white, fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold },
+  enrolledBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space2,
+    backgroundColor: 'rgba(46,125,50,0.1)', borderRadius: spacing.radiusFull, paddingVertical: spacing.space3, marginTop: spacing.space4,
+  },
+  sessionsSection: { paddingTop: spacing.space2, paddingBottom: spacing.space2 },
+sessionsSectionTitle: { fontSize: typography.fontSizeXs, fontWeight: typography.weightSemibold, color: colors.gray500, textTransform: 'uppercase', marginBottom: spacing.space2, marginTop: spacing.space1 },
+sessionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, paddingVertical: spacing.space2 },
+sessionIconWrap: { width: 32, height: 32, borderRadius: spacing.radiusMd, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
+sessionRowTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
+sessionRowMeta: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 1 },
+joinBadge: { backgroundColor: colors.error, paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull },
+joinBadgeText: { color: colors.white, fontSize: 9, fontWeight: typography.weightBold },
+scheduledText: { fontSize: typography.fontSizeXs, color: colors.gray400 },
+  enrolledBannerText: { color: colors.success, fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium },
   courseTitle: { fontSize: typography.fontSizeXl, fontWeight: typography.weightBold, color: colors.gray900, marginBottom: spacing.space2 },
   courseDesc: { fontSize: typography.fontSizeSm, color: colors.gray600, lineHeight: 20, marginBottom: spacing.space4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space2 },
