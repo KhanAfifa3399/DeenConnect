@@ -47,4 +47,20 @@ async function getForStudent(studentId) {
     return result.rows;
 }
 
-module.exports = { getAll, create, deactivate, getForStudent };
+async function getForTeacher(teacherId) {
+    const result = await pool.query(
+        `SELECT DISTINCT a.id, a.title, a.message, a.audience, a.created_at, a.course_id, c.title AS course_title
+         FROM announcements a
+         LEFT JOIN courses c ON a.course_id = c.id
+         WHERE a.is_active = true
+           AND (a.audience = 'all' OR a.audience = 'teachers')
+           AND (a.course_id IS NULL OR c.teacher_id = $1)
+         ORDER BY a.created_at DESC
+         LIMIT 30`,
+        [teacherId]
+    );
+    return result.rows;
+}
+
+module.exports = { getAll, create, deactivate, getForStudent, getForTeacher };
+

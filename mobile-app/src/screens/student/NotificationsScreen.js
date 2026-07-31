@@ -7,6 +7,8 @@ import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { getStudentAnnouncements } from '../../api/announcementsApi';
 import { setLastSeenNotifTime } from '../../utils/secureStorage';
+import { getUser } from '../../utils/secureStorage';
+import { getTeacherAnnouncements } from '../../api/announcementsApi';
 
 function timeAgo(dateStr) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -22,10 +24,13 @@ function NotificationsScreen({ navigation }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     async function load() {
       try {
-        const data = await getStudentAnnouncements();
+        const user = await getUser();
+        const data = user?.role === 'teacher'
+          ? await getTeacherAnnouncements()
+          : await getStudentAnnouncements();
         setAnnouncements(data);
       } catch (err) {
         console.error('Failed to load notifications:', err);
@@ -35,7 +40,7 @@ function NotificationsScreen({ navigation }) {
       }
     }
     load();
-  }, []);
+}, []);
 
   if (loading) {
     return (

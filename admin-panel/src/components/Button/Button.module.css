@@ -27,7 +27,7 @@
 }
 
 .primary:hover:not(:disabled) {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-btn-hover);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }

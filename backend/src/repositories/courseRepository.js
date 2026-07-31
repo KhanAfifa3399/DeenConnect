@@ -46,7 +46,7 @@ async function isValidSubject(subjectId) {
     return result.rows.length > 0;
 }
 
-async function createCourse({ subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price }) {
+async function createCourse({ subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price, status }) {
     const total_weeks = duration_months * 4;
     const client = await pool.connect();
 
@@ -54,10 +54,10 @@ async function createCourse({ subject_id, teacher_id, title, slug, description, 
         await client.query('BEGIN');
 
         const courseResult = await client.query(
-            `INSERT INTO courses (subject_id, teacher_id, title, slug, description, duration_months, total_weeks, start_date, end_date, price)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO courses (subject_id, teacher_id, title, slug, description, duration_months, total_weeks, start_date, end_date, price, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
              RETURNING id, title, slug, duration_months, total_weeks, status, price`,
-            [subject_id, teacher_id, title, slug, description || null, duration_months, total_weeks, start_date || null, end_date || null, price || 0]
+            [subject_id, teacher_id, title, slug, description || null, duration_months, total_weeks, start_date || null, end_date || null, price || 0, status || 'draft']
         );
 
         const newCourse = courseResult.rows[0];
@@ -101,4 +101,18 @@ async function deactivateCourse(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { getAllCourses, getCourseById, isValidTeacher, isValidSubject, createCourse, updateCourse, deactivateCourse };
+async function getCoursesByTeacher(teacherId) {
+    const result = await pool.query(
+        `SELECT c.id, c.title, c.slug, c.description, c.thumbnail, c.duration_months, c.total_weeks,
+                c.start_date, c.end_date, c.price, c.status, c.is_active,
+                s.id AS subject_id, s.name AS subject_name,
+                (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count
+         FROM courses c
+         JOIN subjects s ON c.subject_id = s.id
+         WHERE c.teacher_id = $1 AND c.is_active = true
+         ORDER BY c.created_at DESC`,
+        [teacherId]
+    );
+    return result.rows;
+}
+module.exports = { getAllCourses, getCourseById, isValidTeacher, isValidSubject, createCourse, updateCourse, deactivateCourse, getCoursesByTeacher };

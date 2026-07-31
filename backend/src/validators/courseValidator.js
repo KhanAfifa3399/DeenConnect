@@ -4,7 +4,7 @@ const createCourseRules = [
     body('subject_id').notEmpty().withMessage('Subject is required').isInt().withMessage('Subject ID must be a number'),
     body('teacher_id').notEmpty().withMessage('Teacher is required').isInt().withMessage('Teacher ID must be a number'),
     body('title').trim().notEmpty().withMessage('Title is required').isLength({ max: 200 }),
-    body('slug').trim().notEmpty().withMessage('Slug is required').matches(/^[a-z0-9-]+$/).withMessage('Slug must be lowercase letters, numbers, hyphens only'),
+    body('slug').trim().notEmpty().withMessage('Slug is required').customSanitizer(value => value.toLowerCase()).matches(/^[a-z0-9-]+$/).withMessage('Slug must be lowercase letters, numbers, hyphens only'),
     body('description').optional().trim(),
     body('duration_months').notEmpty().withMessage('Duration in months is required').isInt({ min: 1 }).withMessage('Duration must be at least 1 month'),
     body('start_date').optional().isISO8601().withMessage('Start date must be a valid date (YYYY-MM-DD)'),

@@ -12,6 +12,7 @@ import EnrollModal from './EnrollModal';
 // import { Alert } from 'react-native';
 import { getMyEnrollments, enrollInCourse } from '../../api/enrollmentsApi';
 import { getSessionsByWeek } from '../../api/liveSessionsApi';
+import { Linking } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -67,7 +68,7 @@ function CourseDetailsScreen({ route, navigation }) {
   //   }
   // }
 
-async function toggleWeek(weekId) {
+  async function toggleWeek(weekId) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (expandedWeek === weekId) {
@@ -91,7 +92,7 @@ async function toggleWeek(weekId) {
         setLoadingWeekId(null);
       }
     }
-}
+  }
 
   if (loading) {
     return (
@@ -147,35 +148,42 @@ async function toggleWeek(weekId) {
                 <Text style={styles.weekTitle}>{week.title}</Text>
                 <Text style={styles.weekCount}>{weekLectures?.length ?? ''}</Text>
               </Pressable>
-{sessionsByWeek[week.id]?.length > 0 && (
-  <View style={styles.sessionsSection}>
-    <Text style={styles.sessionsSectionTitle}>Live Sessions</Text>
-    {sessionsByWeek[week.id].map((session) => {
-      const sessionDate = new Date(session.scheduled_at);
-      return (
-        <View key={session.id} style={styles.sessionRow}>
-          <View style={styles.sessionIconWrap}>
-            <Feather name="radio" size={16} color={colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.sessionRowTitle}>{session.title}</Text>
-            <Text style={styles.sessionRowMeta}>
-              {sessionDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} at{' '}
-              {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
-          {session.status === 'ongoing' ? (
-            <View style={styles.joinBadge}>
-              <Text style={styles.joinBadgeText}>LIVE · JOIN</Text>
-            </View>
-          ) : (
-            <Text style={styles.scheduledText}>Scheduled</Text>
-          )}
-        </View>
-      );
-    })}
-  </View>
-)}
+              {sessionsByWeek[week.id]?.length > 0 && (
+                <View style={styles.sessionsSection}>
+                  <Text style={styles.sessionsSectionTitle}>Live Sessions</Text>
+                  {sessionsByWeek[week.id].map((session) => {
+                    const sessionDate = new Date(session.scheduled_at);
+                    return (
+                      <Pressable
+                        key={session.id}
+                        style={({ pressed }) => [styles.sessionRow, pressed && { opacity: 0.7 }]}
+                        onPress={() => Linking.openURL(session.meeting_link)}
+                      >
+                        <View style={styles.sessionIconWrap}>
+                          <Feather name="radio" size={16} color={colors.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.sessionRowTitle}>{session.title}</Text>
+                          <Text style={styles.sessionRowMeta}>
+                            {new Date(session.scheduled_at).toLocaleDateString([], { month: 'short', day: 'numeric' })} at{' '}
+                            {new Date(session.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                        </View>
+                        {session.status === 'ongoing' ? (
+                          <View style={styles.joinBadge}>
+                            <Text style={styles.joinBadgeText}>LIVE · JOIN</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.joinBadgeScheduled}>
+                            <Feather name="external-link" size={11} color={colors.primary} />
+                            <Text style={styles.scheduledText}>Join</Text>
+                          </View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
               {isExpanded && (
                 <View style={styles.lecturesList}>
                   {loadingWeekId === week.id ? (
@@ -244,27 +252,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space2,
     backgroundColor: colors.primary, borderRadius: spacing.radiusFull, paddingVertical: spacing.space3, marginTop: spacing.space4,
   },
-  enrollButtonText: { color: colors.white, fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold },
+  enrollButtonText: { color: colors.white, fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold,},
   enrolledBanner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space2,
     backgroundColor: 'rgba(46,125,50,0.1)', borderRadius: spacing.radiusFull, paddingVertical: spacing.space3, marginTop: spacing.space4,
   },
-  sessionsSection: { paddingTop: spacing.space2, paddingBottom: spacing.space2 },
-sessionsSectionTitle: { fontSize: typography.fontSizeXs, fontWeight: typography.weightSemibold, color: colors.gray500, textTransform: 'uppercase', marginBottom: spacing.space2, marginTop: spacing.space1 },
-sessionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, paddingVertical: spacing.space2 },
-sessionIconWrap: { width: 32, height: 32, borderRadius: spacing.radiusMd, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
-sessionRowTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
-sessionRowMeta: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 1 },
-joinBadge: { backgroundColor: colors.error, paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull },
-joinBadgeText: { color: colors.white, fontSize: 9, fontWeight: typography.weightBold },
-scheduledText: { fontSize: typography.fontSizeXs, color: colors.gray400 },
+  sessionsSection: { paddingTop: spacing.space2, paddingBottom: spacing.space2, padding: spacing.space4 },
+  sessionsSectionTitle: { fontSize: typography.fontSizeXs, fontWeight: typography.weightSemibold, color: colors.gray500, textTransform: 'uppercase', marginBottom: spacing.space2, marginTop: spacing.space1 },
+  sessionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, paddingVertical: spacing.space2 },
+  sessionIconWrap: { width: 32, height: 32, borderRadius: spacing.radiusMd, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
+  sessionRowTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
+  sessionRowMeta: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 1 },
+  joinBadge: { backgroundColor: colors.error, paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull },
+  joinBadgeText: { color: colors.white, fontSize: 9, fontWeight: typography.weightBold },
+  joinBadgeScheduled: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accentLight, paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull },
+  scheduledText: { fontSize: 10, color: colors.primary, fontWeight: typography.weightMedium },
   enrolledBannerText: { color: colors.success, fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium },
   courseTitle: { fontSize: typography.fontSizeXl, fontWeight: typography.weightBold, color: colors.gray900, marginBottom: spacing.space2 },
   courseDesc: { fontSize: typography.fontSizeSm, color: colors.gray600, lineHeight: 20, marginBottom: spacing.space4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space2 },
   metaText: { fontSize: typography.fontSizeXs, color: colors.gray500 },
   metaDivider: { width: 1, height: 10, backgroundColor: colors.gray200, marginHorizontal: 2 },
-  sectionTitle: { fontSize: typography.fontSizeBase, fontWeight: typography.weightSemibold, color: colors.gray900, marginBottom: spacing.space3 },
+  sectionTitle: { fontSize: typography.fontSizeBase, fontWeight: typography.weightSemibold, color: colors.gray900, marginBottom: spacing.space3, marginTop: spacing.space3 },
   weekCard: { backgroundColor: colors.white, borderRadius: spacing.radiusLg, marginBottom: spacing.space3, overflow: 'hidden' },
   weekHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, padding: spacing.space4 },
   weekTitle: { flex: 1, fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },

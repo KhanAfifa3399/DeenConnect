@@ -45,4 +45,16 @@ async function getForStudent(req, res) {
     }
 }
 
-module.exports = { getAll, create, remove, getForStudent };
+async function getForTeacher(req, res) {
+    try {
+        const announcements = await announcementRepository.getForTeacher(req.user.userId);
+        res.status(200).json({ success: true, data: announcements });
+    } catch (error) {
+        console.error('Error fetching teacher announcements:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch announcements' });
+    }
+}
+
+module.exports = { getAll, create, remove, getForStudent, getForTeacher };
+
+

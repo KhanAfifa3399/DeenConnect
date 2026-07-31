@@ -10,3 +10,8 @@ export async function getSessionsByWeek(weekId) {
   const response = await axiosClient.get(`/live-sessions/week/${weekId}`);
   return response.data.data;
 }
+
+export async function createLiveSession(data) {
+  const response = await axiosClient.post('/live-sessions', data);
+  return response.data.data;
+}

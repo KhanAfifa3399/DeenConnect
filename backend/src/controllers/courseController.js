@@ -26,7 +26,7 @@ async function getCourseById(req, res) {
 
 async function createCourse(req, res) {
     try {
-        const { subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price } = req.body;
+        const { subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price, status } = req.body;
 
         const validTeacher = await courseRepository.isValidTeacher(teacher_id);
         if (!validTeacher) {
@@ -39,10 +39,9 @@ async function createCourse(req, res) {
         }
 
         const newCourse = await courseRepository.createCourse({
-            subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price,
+            subject_id, teacher_id, title, slug, description, duration_months, start_date, end_date, price, status,
         });
-        await activityLogRepository.log(req.user.userId, 'Created course', 'course', newCourse.id, `Created course: ${newCourse.title}`);
-        // await activityLogRepository.log(<who did it>, '<short action description>', '<entity type>', <entity id>, '<human-readable details>');
+
         res.status(201).json({ success: true, data: newCourse });
     } catch (error) {
         if (error.code === '23505') {
@@ -79,5 +78,15 @@ async function deleteCourse(req, res) {
         res.status(500).json({ success: false, message: 'Failed to delete course' });
     }
 }
+async function getMyCourses(req, res) {
+    try {
+        const courses = await courseRepository.getCoursesByTeacher(req.user.userId);
+        res.status(200).json({ success: true, data: courses });
+    } catch (error) {
+        console.error('Error fetching teacher courses:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch your courses' });
+    }
+}
 
-module.exports = { getCourses, getCourseById, createCourse, updateCourse, deleteCourse };
+module.exports = { getCourses, getCourseById, createCourse, updateCourse, deleteCourse, getMyCourses };
+

@@ -41,7 +41,8 @@ function Dashboard() {
           return (
             <Card key={card.key} hoverable className={styles.statCard}>
               <div className={styles.statIcon} style={{ backgroundColor: card.color }}>
-                <Icon className={styles.statIconSvg} />
+                {/* Added explicit size prop here */}
+                <Icon size={24} color="#ffffff" className={styles.statIconSvg} />
               </div>
               <div>
                 <p className={styles.statValue}>{stats[card.key]}</p>

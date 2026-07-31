@@ -10,6 +10,10 @@ import LecturePlayerScreen from '../screens/student/LecturePlayerScreen';
 import EditProfileScreen from '../screens/student/EditProfileScreen';
 import ChangePasswordScreen from '../screens/student/ChangePasswordScreen';
 import NotificationsScreen from '../screens/student/NotificationsScreen';
+import TeacherCourseDetailsScreen from '../screens/teacher/TeacherCourseDetailsScreen';
+import CreateAnnouncementScreen from '../screens/teacher/CreateAnnouncementScreen';
+// ...
+// ...
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +32,10 @@ function RootNavigator() {
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="TeacherCourseDetails" component={TeacherCourseDetailsScreen} />
+        <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} />
+
+
       </Stack.Navigator>
     </NavigationContainer>
   );

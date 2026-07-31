@@ -9,5 +9,7 @@ router.get('/:id', courseController.getCourseById);
 router.post('/', authenticate, authorize('admin', 'teacher'), createCourseRules, validate, courseController.createCourse);
 router.put('/:id', authenticate, authorize('admin', 'teacher'), createCourseRules, validate, courseController.updateCourse);
 router.delete('/:id', authenticate, authorize('admin'), courseController.deleteCourse);
+router.get('/my/assigned', authenticate, authorize('teacher'), courseController.getMyCourses);
+// router.get('/teacher', authenticate, announcementController.getForTeacher);
 
 module.exports = router;

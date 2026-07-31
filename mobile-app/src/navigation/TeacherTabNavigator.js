@@ -1,42 +1,54 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import CoursesStackNavigator from './CoursesStackNavigator';
-// ...
+import TeacherDashboardScreen from '../screens/teacher/TeacherDashboardScreen';
+import MyClassesScreen from '../screens/teacher/MyClassesScreen';
+import StudentsScreen from '../screens/teacher/StudentsScreen';
+import TeacherProfileScreen from '../screens/teacher/TeacherProfileScreen';
+import TeacherQuranScreen from '../screens/teacher/TeacherQuranScreen';
 
 const Tab = createBottomTabNavigator();
 
-function PlaceholderTab({ route }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>{route.name}</Text>
-    </View>
-  );
-}
-
 function TeacherTabNavigator() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Dashboard" component={PlaceholderTab} />
-      <Tab.Screen name="Students" component={PlaceholderTab} />
-      <Tab.Screen name="Profile" component={PlaceholderTab} />
-      <Tab.Screen name="My Courses" component={CoursesStackNavigator} />
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.gray400,
+        tabBarStyle: { height: 60, paddingBottom: 8, paddingTop: 6 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        
+        // Dynamic Icon assignment based on route name
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Dashboard') {
+            iconName = focused ? 'grid' : 'grid-outline';
+            return <Ionicons name={iconName} size={size} color={color} />;
+          } else if (route.name === 'My Classes') {
+            iconName = focused ? 'google-classroom' : 'google-classroom'; // or 'book-open-page-variant'
+            return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+          } else if (route.name === 'Students') {
+            iconName = focused ? 'people' : 'people-outline';
+            return <Ionicons name={iconName} size={size} color={color} />;
+          } else if (route.name === 'Quran') {
+            iconName = focused ? 'book-open-variant' : 'book-outline';
+            return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+            return <Ionicons name={iconName} size={size} color={color} />;
+          }
+        },
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={TeacherDashboardScreen} />
+      <Tab.Screen name="My Classes" component={MyClassesScreen} />
+      <Tab.Screen name="Students" component={StudentsScreen} />
+      <Tab.Screen name="Quran" component={TeacherQuranScreen} />
+      <Tab.Screen name="Profile" component={TeacherProfileScreen} />
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    backgroundColor: colors.gray50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-});
 
 export default TeacherTabNavigator;
