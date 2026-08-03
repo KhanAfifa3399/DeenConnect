@@ -2,7 +2,8 @@ import { useState } from 'react';
 import Modal from '../../components/Modal/Modal';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
-import { createDua, updateDua } from '../../api/duasApi';
+import { createDua, updateDua, uploadDuaAudio } from '../../api/duasApi';
+import { getFileUrl } from '../../utils/urls';
 import styles from '../Subjects/Subjects.module.css';
 
 function DuaModal({ editingDua, onClose, onSaved }) {
@@ -12,8 +13,32 @@ function DuaModal({ editingDua, onClose, onSaved }) {
   const [translation, setTranslation] = useState(editingDua?.translation || '');
   const [reference, setReference] = useState(editingDua?.reference || '');
   const [category, setCategory] = useState(editingDua?.category || '');
+  const [audioUrl, setAudioUrl] = useState(editingDua?.audio_url || '');
+  const [audioUploading, setAudioUploading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  async function handleAudioChange(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !editingDua) return;
+
+    if (!file.type.startsWith('audio/')) {
+      setError('Please select an audio file (MP3, M4A, or WAV).');
+      return;
+    }
+
+    setAudioUploading(true);
+    setError('');
+    try {
+      const updated = await uploadDuaAudio(editingDua.id, file);
+      setAudioUrl(updated?.audio_url || '');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload audio.');
+    } finally {
+      setAudioUploading(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -109,6 +134,21 @@ return (
         onChange={(e) => setCategory(e.target.value)}
         placeholder="e.g. Eating, Travel, Morning"
       />
+
+      {editingDua ? (
+        <div className={styles.textareaWrapper}>
+          <label className={styles.textareaLabel}>Recitation Audio (optional)</label>
+          {audioUrl && (
+            <audio controls src={getFileUrl(audioUrl)} style={{ width: '100%', marginBottom: '8px' }} />
+          )}
+          <input type="file" accept="audio/*" onChange={handleAudioChange} disabled={audioUploading} />
+          {audioUploading && <p style={{ fontSize: '0.85rem', color: '#888' }}>Uploading...</p>}
+        </div>
+      ) : (
+        <p style={{ fontSize: '0.85rem', color: '#888' }}>
+          Save the dua first, then edit it again to upload recitation audio.
+        </p>
+      )}
 
       {error && <p className={styles.errorText}>{error}</p>}
 

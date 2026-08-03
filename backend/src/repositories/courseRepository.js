@@ -93,6 +93,14 @@ async function updateCourse(id, { title, slug, description, duration_months, sta
     return result.rows[0] || null;
 }
 
+async function updateCourseThumbnail(id, thumbnailPath) {
+    const result = await pool.query(
+        `UPDATE courses SET thumbnail = $1, updated_at = NOW() WHERE id = $2 RETURNING id, title, thumbnail`,
+        [thumbnailPath, id]
+    );
+    return result.rows[0] || null;
+}
+
 async function deactivateCourse(id) {
     const result = await pool.query(
         `UPDATE courses SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, title, is_active`,
@@ -115,4 +123,4 @@ async function getCoursesByTeacher(teacherId) {
     );
     return result.rows;
 }
-module.exports = { getAllCourses, getCourseById, isValidTeacher, isValidSubject, createCourse, updateCourse, deactivateCourse, getCoursesByTeacher };
+module.exports = { getAllCourses, getCourseById, isValidTeacher, isValidSubject, createCourse, updateCourse, updateCourseThumbnail, deactivateCourse, getCoursesByTeacher };

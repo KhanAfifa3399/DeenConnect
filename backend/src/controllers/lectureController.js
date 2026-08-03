@@ -35,6 +35,17 @@ async function createLecture(req, res) {
     }
 }
 
+async function getMissingVideosForTeacher(req, res) {
+    try {
+        const teacherId = req.user.userId;
+        const lectures = await lectureRepository.getMissingVideoLecturesForTeacher(teacherId);
+        res.status(200).json({ success: true, data: lectures });
+    } catch (error) {
+        console.error('Error fetching missing video lectures:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch missing video lectures' });
+    }
+}
+
 async function deleteLecture(req, res) {
     try {
         const deactivated = await lectureRepository.deactivateLecture(req.params.id);
@@ -62,5 +73,14 @@ async function updateLecture(req, res) {
     }
 }
 
-module.exports = { getLecturesByWeek, createLecture, updateLecture, deleteLecture };
+async function getMyMissingVideos(req, res) {
+    try {
+        const lectures = await lectureRepository.getMissingVideoLecturesForTeacher(req.user.userId);
+        res.status(200).json({ success: true, data: lectures });
+    } catch (error) {
+        console.error('Error fetching missing-video lectures:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch lectures' });
+    }
+}
+module.exports = { getLecturesByWeek, createLecture, updateLecture, deleteLecture, getMissingVideosForTeacher, getMyMissingVideos };
 // module.exports = { getLecturesByWeek, createLecture, deleteLecture };

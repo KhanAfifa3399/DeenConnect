@@ -38,6 +38,25 @@ async function getUpcomingSessionsForStudent(studentId) {
     return result.rows;
 }
 
+async function getUpcomingSessionsForTeacher(teacherId) {
+    const result = await pool.query(
+        `SELECT ls.id, ls.title, ls.meeting_platform, ls.meeting_link, ls.scheduled_at, ls.duration_minutes, ls.status,
+                c.id AS course_id, c.title AS course_title,
+                w.id AS week_id, w.week_number
+         FROM live_sessions ls
+         JOIN weeks w ON ls.week_id = w.id
+         JOIN courses c ON w.course_id = c.id
+         WHERE c.teacher_id = $1
+           AND ls.is_active = true
+           AND ls.status IN ('scheduled', 'ongoing')
+           AND ls.scheduled_at >= NOW() - INTERVAL '2 hours'
+         ORDER BY ls.scheduled_at ASC
+         LIMIT 10`,
+        [teacherId]
+    );
+    return result.rows;
+}
+
 async function updateSessionStatus(id, status) {
     const result = await pool.query(
         `UPDATE live_sessions SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, title, status`,
@@ -54,4 +73,21 @@ async function deactivateSession(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { createLiveSession, getSessionsByWeek, getUpcomingSessionsForStudent, updateSessionStatus, deactivateSession };
+async function getUpcomingSessionsForTeacher(teacherId) {
+    const result = await pool.query(
+        `SELECT ls.id, ls.title, ls.meeting_platform, ls.meeting_link, ls.scheduled_at, ls.duration_minutes, ls.status,
+                c.id AS course_id, c.title AS course_title,
+                w.id AS week_id, w.week_number
+         FROM live_sessions ls
+         JOIN weeks w ON ls.week_id = w.id
+         JOIN courses c ON w.course_id = c.id
+         WHERE c.teacher_id = $1
+           AND ls.is_active = true
+           AND ls.status IN ('scheduled', 'ongoing')
+           AND ls.scheduled_at >= NOW() - INTERVAL '2 hours'
+         ORDER BY ls.scheduled_at ASC`,
+        [teacherId]
+    );
+    return result.rows;
+}
+module.exports = { createLiveSession, getSessionsByWeek, getUpcomingSessionsForStudent, getUpcomingSessionsForTeacher, updateSessionStatus, deactivateSession };

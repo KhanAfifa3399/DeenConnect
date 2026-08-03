@@ -4,6 +4,7 @@ import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import { getAllCourses, deleteCourse } from '../../api/coursesApi';
+import { getFileUrl } from '../../utils/urls';
 import { getAllSubjects } from '../../api/subjectsApi';
 import { getTeachers } from '../../api/usersApi';
 import CourseModal from './CourseModal';
@@ -96,9 +97,18 @@ function Courses() {
                                 {courses.map((course) => (
                                     <tr key={course.id}>
                                         <td className={styles.nameCell}>
-                                            <Link to={`/courses/${course.id}`} className={courseStyles.courseLink}>
-                                                {course.title}
-                                            </Link>
+                                            <div className={courseStyles.titleCell}>
+                                                <div className={courseStyles.rowThumbnail}>
+                                                    {course.thumbnail ? (
+                                                        <img src={getFileUrl(course.thumbnail)} alt={course.title} />
+                                                    ) : (
+                                                        <span>{course.title.charAt(0)}</span>
+                                                    )}
+                                                </div>
+                                                <Link to={`/courses/${course.id}`} className={courseStyles.courseLink}>
+                                                    {course.title}
+                                                </Link>
+                                            </div>
                                         </td>
                                         <td>{course.subject_name}</td>
                                         <td>{course.teacher_name}</td>
@@ -140,4 +150,4 @@ function Courses() {
     );
 }
 
-export default Courses; 
+export default Courses;

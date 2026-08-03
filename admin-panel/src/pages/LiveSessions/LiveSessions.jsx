@@ -9,6 +9,8 @@ import { getSessionsByWeek, updateSessionStatus, deleteLiveSession } from '../..
 import ScheduleSessionModal from './ScheduleSessionModal';
 import styles from '../Subjects/Subjects.module.css';
 import liveStyles from './LiveSessions.module.css';
+import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
+
 
 function LiveSessions() {
   const [courses, setCourses] = useState([]);
@@ -103,7 +105,7 @@ function LiveSessions() {
                   <p className={liveStyles.sessionTitle}>{session.title}</p>
                   <p className={liveStyles.sessionMeta}>
                     {session.weekTitle} · {session.meeting_platform} ·{' '}
-                    {new Date(session.scheduled_at).toLocaleString()}
+                    {formatWallClockDate(session.scheduled_at)}, {formatWallClockTime(session.scheduled_at)}
                     {session.duration_minutes && ` · ${session.duration_minutes} min`}
                   </p>
                 </div>

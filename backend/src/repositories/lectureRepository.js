@@ -52,5 +52,22 @@ async function updateLecture(id, { title, description, lecture_order }) {
     return result.rows[0] || null;
 }
 
-module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, updateLecture, deactivateLecture };
-// module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, deactivateLecture };
+
+
+async function getMissingVideoLecturesForTeacher(teacherId) {
+    const result = await pool.query(
+        `SELECT l.id, l.title, l.week_id, w.title AS week_title, c.id AS course_id, c.title AS course_title
+         FROM lectures l
+         JOIN weeks w ON l.week_id = w.id
+         JOIN courses c ON w.course_id = c.id
+         WHERE c.teacher_id = $1
+           AND l.is_active = true
+           AND l.video_url IS NULL
+         ORDER BY l.created_at DESC
+         LIMIT 20`,
+        [teacherId]
+    );
+    return result.rows;
+}
+
+module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, updateLecture, deactivateLecture, getMissingVideoLecturesForTeacher };

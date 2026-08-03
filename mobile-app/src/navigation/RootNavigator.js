@@ -12,6 +12,8 @@ import ChangePasswordScreen from '../screens/student/ChangePasswordScreen';
 import NotificationsScreen from '../screens/student/NotificationsScreen';
 import TeacherCourseDetailsScreen from '../screens/teacher/TeacherCourseDetailsScreen';
 import CreateAnnouncementScreen from '../screens/teacher/CreateAnnouncementScreen';
+import MyAnnouncementsScreen from '../screens/teacher/MyAnnouncementsScreen';
+// ...
 // ...
 // ...
 
@@ -34,6 +36,8 @@ function RootNavigator() {
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="TeacherCourseDetails" component={TeacherCourseDetailsScreen} />
         <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} />
+<Stack.Screen name="MyAnnouncements" component={MyAnnouncementsScreen} />
+
 
 
       </Stack.Navigator>

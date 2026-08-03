@@ -40,4 +40,4 @@ async function getRecentExcludingUser(excludeUserId, limit = 100) {
 }
 
 module.exports = { log, getRecent, getRecentExcludingUser };
-module.exports = { log, getRecent };
+// module.exports = { log, getRecent };

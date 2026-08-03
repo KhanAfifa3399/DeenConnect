@@ -10,3 +10,7 @@ export async function uploadLecture(formData) {
   });
   return response.data.data;
 }
+export async function getMyMissingVideoLectures() {
+  const response = await axiosClient.get('/lectures/missing-videos/teacher');
+  return response.data.data;
+}

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Platform, UIManager, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Platform, UIManager, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { getCourseById } from '../../api/coursesApi';
+import { getFileUrl } from '../../api/urls';
 import { getWeeksByCourse } from '../../api/weeksApi';
 import { getLecturesByWeek } from '../../api/lecturesApi';
 import EnrollModal from './EnrollModal';
@@ -13,6 +14,8 @@ import EnrollModal from './EnrollModal';
 import { getMyEnrollments, enrollInCourse } from '../../api/enrollmentsApi';
 import { getSessionsByWeek } from '../../api/liveSessionsApi';
 import { Linking } from 'react-native';
+import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
+
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -113,6 +116,9 @@ function CourseDetailsScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroCard}>
+          {course?.thumbnail && (
+            <Image source={{ uri: getFileUrl(course.thumbnail) }} style={styles.heroThumbnail} />
+          )}
           <Text style={styles.subjectTag}>{course?.subject_name}</Text>
           <Text style={styles.courseTitle}>{course?.title}</Text>
           <Text style={styles.courseDesc}>{course?.description}</Text>
@@ -268,6 +274,7 @@ const styles = StyleSheet.create({
   joinBadgeScheduled: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accentLight, paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull },
   scheduledText: { fontSize: 10, color: colors.primary, fontWeight: typography.weightMedium },
   enrolledBannerText: { color: colors.success, fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium },
+  heroThumbnail: { width: '100%', height: 160, borderRadius: spacing.radiusLg, marginBottom: spacing.space3, backgroundColor: colors.gray100 },
   courseTitle: { fontSize: typography.fontSizeXl, fontWeight: typography.weightBold, color: colors.gray900, marginBottom: spacing.space2 },
   courseDesc: { fontSize: typography.fontSizeSm, color: colors.gray600, lineHeight: 20, marginBottom: spacing.space4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space2 },

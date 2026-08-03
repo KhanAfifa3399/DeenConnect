@@ -1,16 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiChevronDown, FiChevronRight, FiVideo, FiClock, FiUpload } from 'react-icons/fi';
+import {
+    FiArrowLeft,
+    FiChevronDown,
+    FiChevronRight,
+    FiVideo,
+    FiClock,
+    FiUpload,
+    FiCamera,
+    FiUser,
+    FiCalendar,
+    FiDollarSign,
+    FiEdit2,
+    FiTrash2,
+    FiInbox,
+} from 'react-icons/fi';
 import Card from '../../components/Card/Card';
-import { getCourseById } from '../../api/coursesApi';
+import { getCourseById, uploadCourseThumbnail } from '../../api/coursesApi';
+import { getFileUrl } from '../../utils/urls';
 import { getWeeksByCourse } from '../../api/weeksApi';
 import { getLecturesByWeek } from '../../api/lecturesApi';
+import { deleteLecture } from '../../api/lecturesApi';
 import { usePageTitle } from '../../context/PageTitleContext';
 import styles from './CourseDetails.module.css';
 import UploadLectureModal from './UploadLectureModal';
 import EditLectureModal from './EditLectureModal';
-import { deleteLecture } from '../../api/lecturesApi';
-import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 function CourseDetails() {
     const { id } = useParams();
@@ -23,6 +37,8 @@ function CourseDetails() {
     const [loadingLectures, setLoadingLectures] = useState(null);
     const [uploadModalWeek, setUploadModalWeek] = useState(null);
     const [editingLecture, setEditingLecture] = useState(null);
+    const [thumbnailUploading, setThumbnailUploading] = useState(false);
+    const thumbnailInputRef = useRef(null);
 
     useEffect(() => {
         async function loadCourseData() {
@@ -91,6 +107,42 @@ function CourseDetails() {
         setEditingLecture(null);
         refreshWeekLectures(weekId);
     }
+
+    function handleThumbnailClick() {
+        thumbnailInputRef.current?.click();
+    }
+
+    async function handleThumbnailChange(e) {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        setCourse((prev) => ({ ...prev, thumbnail: previewUrl }));
+        setThumbnailUploading(true);
+        try {
+            const updated = await uploadCourseThumbnail(id, file);
+            setCourse((prev) => ({ ...prev, thumbnail: updated?.thumbnail || previewUrl }));
+        } catch (err) {
+            console.error('Failed to upload thumbnail:', err);
+            alert('Failed to upload thumbnail image.');
+        } finally {
+            setThumbnailUploading(false);
+        }
+    }
+
+    function resolveThumbnailSrc(thumbnail) {
+        if (!thumbnail) return null;
+        // Local preview (URL.createObjectURL) or an already-absolute URL — use as-is.
+        if (thumbnail.startsWith('blob:') || thumbnail.startsWith('http')) return thumbnail;
+        return getFileUrl(thumbnail);
+    }
+
     if (loading) return <p>Loading course...</p>;
     if (!course) return <p>Course not found.</p>;
 
@@ -101,46 +153,88 @@ function CourseDetails() {
             </Link>
 
             <div className={styles.heroCard}>
-                <div className={styles.thumbnail}>
-                    {course.thumbnail ? (
-                        <img src={course.thumbnail} alt={course.title} />
-                    ) : (
-                        <span className={styles.thumbnailPlaceholder}>{course.title.charAt(0)}</span>
+                <div className={styles.thumbnailWrapper}>
+                    <div className={styles.thumbnail}>
+                        {course.thumbnail ? (
+                            <img src={resolveThumbnailSrc(course.thumbnail)} alt={course.title} />
+                        ) : (
+                            <span className={styles.thumbnailPlaceholder}>{course.title.charAt(0)}</span>
+                        )}
+                    </div>
+
+                    {thumbnailUploading && (
+                        <div className={styles.thumbnailUploadOverlay}>
+                            <div className={styles.spinner} />
+                        </div>
                     )}
+
+                    <button
+                        type="button"
+                        className={styles.thumbnailEditButton}
+                        onClick={handleThumbnailClick}
+                        title="Change course thumbnail"
+                    >
+                        <FiCamera />
+                    </button>
+                    <input
+                        ref={thumbnailInputRef}
+                        type="file"
+                        accept="image/*"
+                        className={styles.hiddenFileInput}
+                        onChange={handleThumbnailChange}
+                    />
                 </div>
+
                 <div className={styles.heroInfo}>
                     <span className={styles.subjectTag}>{course.subject_name}</span>
                     <h1 className={styles.courseTitle}>{course.title}</h1>
                     <p className={styles.courseDescription}>{course.description || 'No description provided.'}</p>
+
                     <div className={styles.metaRow}>
                         <div className={styles.metaItem}>
-                            <span className={styles.metaLabel}>Teacher</span>
-                            <span className={styles.metaValue}>{course.teacher_name}</span>
+                            <FiUser className={styles.metaIcon} />
+                            <div className={styles.metaText}>
+                                <span className={styles.metaLabel}>Teacher</span>
+                                <span className={styles.metaValue}>{course.teacher_name}</span>
+                            </div>
                         </div>
                         <div className={styles.metaItem}>
-                            <span className={styles.metaLabel}>Duration</span>
-                            <span className={styles.metaValue}>{course.duration_months} months · {course.total_weeks} weeks</span>
+                            <FiCalendar className={styles.metaIcon} />
+                            <div className={styles.metaText}>
+                                <span className={styles.metaLabel}>Duration</span>
+                                <span className={styles.metaValue}>{course.duration_months} mo · {course.total_weeks} wks</span>
+                            </div>
                         </div>
                         <div className={styles.metaItem}>
-                            <span className={styles.metaLabel}>Price</span>
-                            <span className={styles.metaValue}>{Number(course.price) === 0 ? 'Free' : `$${course.price}`}</span>
+                            <FiDollarSign className={styles.metaIcon} />
+                            <div className={styles.metaText}>
+                                <span className={styles.metaLabel}>Price</span>
+                                <span className={styles.metaValue}>{Number(course.price) === 0 ? 'Free' : `$${course.price}`}</span>
+                            </div>
                         </div>
                         <div className={styles.metaItem}>
-                            <span className={styles.metaLabel}>Status</span>
-                            <span className={styles.metaValue}>{course.status}</span>
+                            <div className={styles.metaText}>
+                                <span className={styles.metaLabel}>Status</span>
+                                <span className={`${styles.metaValue} ${styles.statusBadge}`}>{course.status}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <h2 className={styles.sectionTitle}>Course Content — {weeks.length} Weeks</h2>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Course Content</h2>
+                <span className={styles.sectionSubtitle}>{weeks.length} weeks</span>
+            </div>
 
             <div className={styles.weeksList}>
                 {weeks.map((week) => (
                     <Card key={week.id} className={styles.weekCard}>
                         <button className={styles.weekHeader} onClick={() => toggleWeek(week.id)}>
                             <div className={styles.weekHeaderLeft}>
-                                {expandedWeek === week.id ? <FiChevronDown /> : <FiChevronRight />}
+                                <span className={styles.weekChevron}>
+                                    {expandedWeek === week.id ? <FiChevronDown /> : <FiChevronRight />}
+                                </span>
                                 <span className={styles.weekTitle}>{week.title}</span>
                             </div>
                             <span className={styles.weekLectureCount}>
@@ -165,8 +259,10 @@ function CourseDetails() {
                                     lecturesByWeek[week.id].map((lecture) => (
                                         <div key={lecture.id} className={styles.lectureItem}>
                                             <div className={styles.lectureInfo}>
-                                                <FiVideo className={styles.lectureIcon} />
-                                                <div>
+                                                <span className={styles.lectureIconBadge}>
+                                                    <FiVideo />
+                                                </span>
+                                                <div className={styles.lectureTextGroup}>
                                                     <p className={styles.lectureTitle}>{lecture.title}</p>
                                                     {lecture.description && (
                                                         <p className={styles.lectureDesc}>{lecture.description}</p>
@@ -185,12 +281,14 @@ function CourseDetails() {
                                                 <button
                                                     className={styles.lectureActionButton}
                                                     onClick={(e) => { e.stopPropagation(); setEditingLecture(lecture); }}
+                                                    title="Edit lecture"
                                                 >
                                                     <FiEdit2 />
                                                 </button>
                                                 <button
                                                     className={styles.lectureActionButtonDanger}
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteLecture(lecture); }}
+                                                    title="Delete lecture"
                                                 >
                                                     <FiTrash2 />
                                                 </button>
@@ -198,7 +296,10 @@ function CourseDetails() {
                                         </div>
                                     ))
                                 ) : (
-                                    <p className={styles.emptyText}>No lectures added yet for this week.</p>
+                                    <div className={styles.emptyState}>
+                                        <FiInbox className={styles.emptyStateIcon} />
+                                        <p className={styles.emptyText}>No lectures added yet for this week.</p>
+                                    </div>
                                 )}
                             </div>
                         )}

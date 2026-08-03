@@ -3,11 +3,20 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FiBell, FiSun, FiMoon, FiChevronDown, FiUser, FiSettings, FiLogOut, FiClock } from 'react-icons/fi';
 import { getUser, logout } from '../../utils/auth';
 import { getFileUrl } from '../../utils/urls';
-import { getRecentLogs } from '../../api/activityLogsApi';
+// import { getRecentLogs } from '../../api/activityLogsApi';
 import styles from './DashboardLayout.module.css';
 import { getNotificationLogs } from '../../api/activityLogsApi';
 
 const LAST_SEEN_KEY = 'notifications_last_seen';
+function getEntityPath(entityType) {
+  const map = {
+    announcement: '/announcements',
+    subject: '/subjects',
+    course: '/courses',
+    user: '/students',
+  };
+  return map[entityType] || '/activity-logs';
+}
 
 function Topbar({ title }) {
   const navigate = useNavigate();
@@ -25,7 +34,6 @@ function Topbar({ title }) {
   const userMenuRef = useRef(null);
 
   async function loadNotifications() {
-    s
     setLoadingLogs(true);
     try {
       const data = await getNotificationLogs();
@@ -120,7 +128,14 @@ function Topbar({ title }) {
               ) : (
                 <div className={styles.notifList}>
                   {logs.map((log) => (
-                    <div key={log.id} className={styles.notifItem}>
+                    <button
+                      key={log.id}
+                      className={styles.notifItemButton}
+                      onClick={() => {
+                        setNotifOpen(false);
+                        navigate(getEntityPath(log.entity_type));
+                      }}
+                    >
                       <div className={styles.notifIcon}><FiClock /></div>
                       <div className={styles.notifBody}>
                         <p className={styles.notifText}>
@@ -128,7 +143,7 @@ function Topbar({ title }) {
                         </p>
                         <span className={styles.notifTime}>{timeAgo(log.created_at)}</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}

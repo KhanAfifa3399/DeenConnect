@@ -49,9 +49,11 @@ async function getForStudent(studentId) {
 
 async function getForTeacher(teacherId) {
     const result = await pool.query(
-        `SELECT DISTINCT a.id, a.title, a.message, a.audience, a.created_at, a.course_id, c.title AS course_title
+        `SELECT DISTINCT a.id, a.title, a.message, a.audience, a.created_at, a.course_id, a.created_by,
+                c.title AS course_title, u.full_name AS created_by_name
          FROM announcements a
          LEFT JOIN courses c ON a.course_id = c.id
+         JOIN users u ON a.created_by = u.id
          WHERE a.is_active = true
            AND (a.audience = 'all' OR a.audience = 'teachers')
            AND (a.course_id IS NULL OR c.teacher_id = $1)
@@ -62,5 +64,33 @@ async function getForTeacher(teacherId) {
     return result.rows;
 }
 
-module.exports = { getAll, create, deactivate, getForStudent, getForTeacher };
+async function getById(id) {
+    const result = await pool.query('SELECT id, created_by FROM announcements WHERE id = $1', [id]);
+    return result.rows[0] || null;
+}
+
+async function update(id, { title, message, audience, course_id }) {
+    const result = await pool.query(
+        `UPDATE announcements SET title = $1, message = $2, audience = $3, course_id = $4 WHERE id = $5
+         RETURNING id, title, message, audience, course_id`,
+        [title, message, audience, course_id || null, id]
+    );
+    return result.rows[0] || null;
+}
+
+async function getCreatedByUser(userId) {
+    const result = await pool.query(
+        `SELECT a.id, a.title, a.message, a.audience, a.created_at, a.course_id, c.title AS course_title
+         FROM announcements a
+         LEFT JOIN courses c ON a.course_id = c.id
+         WHERE a.created_by = $1 AND a.is_active = true
+         ORDER BY a.created_at DESC`,
+        [userId]
+    );
+    return result.rows;
+}
+
+module.exports = { getAll, create, deactivate, getForStudent, getForTeacher, getById, update, getCreatedByUser };
+
+
 

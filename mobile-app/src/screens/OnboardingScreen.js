@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, Dimensions, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Dimensions, Pressable, Image } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useAnimatedScrollHandler,
@@ -38,8 +38,8 @@ function Dot({ index, scrollX }) {
 function Slide({ item }) {
   return (
     <View style={styles.slide}>
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.imagePlaceholderText}>{item.id}</Text>
+      <View style={styles.imageContainer}>
+        <Image source={item.image} style={styles.slideImage} resizeMode="contain" />
       </View>
       <Text style={styles.slideTitle}>{item.title}</Text>
       <Text style={styles.slideDescription}>{item.description}</Text>
@@ -134,19 +134,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.space8,
   },
-  imagePlaceholder: {
-    width: 220,
-    height: 220,
-    borderRadius: spacing.radiusXl,
-    backgroundColor: colors.accentLight,
+  imageContainer: {
+    width: 240,
+    height: 240,
+    marginBottom: spacing.space8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.space8,
   },
-  imagePlaceholderText: {
-    fontSize: 60,
-    fontWeight: typography.weightBold,
-    color: colors.primaryDark,
+  slideImage: {
+    width: '100%',
+    height: '100%',
   },
   slideTitle: {
     fontSize: typography.fontSize2xl,

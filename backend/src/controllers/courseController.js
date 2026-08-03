@@ -66,6 +66,25 @@ async function updateCourse(req, res) {
     }
 }
 
+async function uploadCourseThumbnail(req, res) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No image file provided' });
+        }
+
+        const thumbnail = `/uploads/courses/${req.file.filename}`;
+        const updated = await courseRepository.updateCourseThumbnail(req.params.id, thumbnail);
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+
+        res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        console.error('Error uploading course thumbnail:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to upload course thumbnail' });
+    }
+}
+
 async function deleteCourse(req, res) {
     try {
         const deactivated = await courseRepository.deactivateCourse(req.params.id);
@@ -88,5 +107,4 @@ async function getMyCourses(req, res) {
     }
 }
 
-module.exports = { getCourses, getCourseById, createCourse, updateCourse, deleteCourse, getMyCourses };
-
+module.exports = { getCourses, getCourseById, createCourse, updateCourse, uploadCourseThumbnail, deleteCourse, getMyCourses };

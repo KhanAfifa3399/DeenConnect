@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -8,6 +8,7 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { getMyEnrollments } from '../../api/enrollmentsApi';
+import { getFileUrl } from '../../api/urls';
 
 function MyCoursesScreen({ navigation }) {
   const [enrollments, setEnrollments] = useState([]);
@@ -44,14 +45,22 @@ function MyCoursesScreen({ navigation }) {
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate('CourseDetails', { courseId: item.course_id, courseTitle: item.course_title })}
         >
-          <LinearGradient
-            colors={[colors.primaryDark, colors.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.thumb}
-          >
-            <Text style={styles.thumbText}>{item.course_title.charAt(0)}</Text>
-          </LinearGradient>
+          <View style={styles.browseThumb}>
+            <View style={styles.browseThumbInner}>
+              {item.thumbnail ? (
+                <Image source={{ uri: getFileUrl(item.thumbnail) }} style={styles.browseThumbImage} />
+              ) : (
+                <LinearGradient
+                  colors={[colors.primaryDark, colors.primary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.browseThumbInner}
+                >
+                  <Text style={styles.browseThumbText}>{item.course_title ? item.course_title.charAt(0) : 'C'}</Text>
+                </LinearGradient>
+              )}
+            </View>
+          </View>
 
           <View style={styles.cardBody}>
             <View style={styles.cardTopRow}>
@@ -136,14 +145,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-  thumb: {
-    width: 72,
-    height: 72,
+  browseThumb: {
+    width: 68,
+    height: 68,
     borderRadius: spacing.radiusLg,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    backgroundColor: colors.gray100,
   },
-  thumbText: { color: colors.white, fontSize: typography.fontSize2xl, fontWeight: typography.weightBold },
+  browseThumbInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: spacing.radiusLg,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  browseThumbImage: { width: '100%', height: '100%' },
+  browseThumbText: { color: colors.white, fontSize: typography.fontSize2xl, fontWeight: typography.weightBold },
   cardBody: { flex: 1, justifyContent: 'center', gap: spacing.space2 },
   cardTopRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.space2 },
   cardTitle: { flex: 1, fontSize: typography.fontSizeBase, fontWeight: typography.weightSemibold, color: colors.gray900, lineHeight: 20 },

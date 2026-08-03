@@ -68,8 +68,7 @@ function ProfileScreen({ navigation }) {
         style: 'destructive',
         onPress: async () => {
           await clearAuth();
-          navigation.getParent()?.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
-        },
+navigation.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });        },
       },
     ]);
   }

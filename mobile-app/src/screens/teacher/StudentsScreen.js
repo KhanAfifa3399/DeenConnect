@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, SectionList, ActivityIndicator, TextInput, Pressable, LayoutAnimation } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,19 +9,22 @@ import { spacing } from '../../theme/spacing';
 import { getMyAssignedCourses, getCourseEnrollments } from '../../api/coursesApi';
 
 function StudentsScreen() {
-  const [students, setStudents] = useState([]);
+  const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [collapsedCourses, setCollapsedCourses] = useState({});
 
   const loadStudents = useCallback(async () => {
     try {
       const courses = await getMyAssignedCourses();
-      const rosters = await Promise.all(
-        courses.map((c) => getCourseEnrollments(c.id).then((list) => list.map((s) => ({ ...s, courseTitle: c.title }))))
+      const grouped = await Promise.all(
+        courses.map(async (c) => ({
+          title: c.title,
+          courseId: c.id,
+          data: await getCourseEnrollments(c.id),
+        }))
       );
-      const flat = rosters.flat();
-      const unique = Array.from(new Map(flat.map((s) => [`${s.student_id}-${s.courseTitle}`, s])).values());
-      setStudents(unique);
+      setSections(grouped.filter((g) => g.data.length > 0));
     } catch (err) {
       console.error('Failed to load students:', err);
     } finally {
@@ -31,9 +34,19 @@ function StudentsScreen() {
 
   useFocusEffect(useCallback(() => { loadStudents(); }, [loadStudents]));
 
-  const filtered = searchTerm.trim()
-    ? students.filter((s) => s.student_name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : students;
+  function toggleCourse(courseId) {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCollapsedCourses((prev) => ({ ...prev, [courseId]: !prev[courseId] }));
+  }
+
+  const filteredSections = sections
+    .map((section) => ({
+      ...section,
+      data: searchTerm.trim()
+        ? section.data.filter((s) => s.student_name.toLowerCase().includes(searchTerm.toLowerCase()))
+        : section.data,
+    }))
+    .filter((section) => section.data.length > 0);
 
   if (loading) {
     return (
@@ -56,24 +69,36 @@ function StudentsScreen() {
           onChangeText={setSearchTerm}
         />
       </View>
-      <FlatList
-        data={filtered}
+
+      <SectionList
+        sections={filteredSections}
         keyExtractor={(item, index) => `${item.student_id}-${index}`}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.student_name?.charAt(0)}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
+        renderSectionHeader={({ section }) => {
+          const isCollapsed = collapsedCourses[section.courseId];
+          return (
+            <Pressable style={styles.sectionHeader} onPress={() => toggleCourse(section.courseId)}>
+              <Feather name={isCollapsed ? 'chevron-right' : 'chevron-down'} size={16} color={colors.primary} />
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{section.data.length}</Text>
+              </View>
+            </Pressable>
+          );
+        }}
+        renderItem={({ item, section }) =>
+          collapsedCourses[section.courseId] ? null : (
+            <View style={styles.row}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.student_name?.charAt(0)}</Text>
+              </View>
               <Text style={styles.name} numberOfLines={1}>{item.student_name}</Text>
-              <Text style={styles.course} numberOfLines={1}>{item.courseTitle}</Text>
+              <View style={[styles.statusBadge, styles[`badge_${item.status}`]]}>
+                <Text style={styles.statusText}>{item.status}</Text>
+              </View>
             </View>
-            <View style={[styles.statusBadge, styles[`badge_${item.status}`]]}>
-              <Text style={styles.statusText}>{item.status}</Text>
-            </View>
-          </View>
-        )}
+          )
+        }
         ListEmptyComponent={
           <View style={styles.emptyBox}>
             <Feather name="users" size={24} color={colors.gray300} />
@@ -92,13 +117,16 @@ const styles = StyleSheet.create({
   searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.space2, backgroundColor: colors.white, marginHorizontal: spacing.space5, marginBottom: spacing.space4, paddingHorizontal: spacing.space4, paddingVertical: spacing.space3, borderRadius: spacing.radiusFull, borderWidth: 1, borderColor: colors.gray200 },
   searchInput: { flex: 1, fontSize: typography.fontSizeSm, color: colors.gray900 },
   listContent: { paddingHorizontal: spacing.space5, paddingBottom: spacing.space10 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.space2, backgroundColor: colors.accentLight, paddingHorizontal: spacing.space4, paddingVertical: spacing.space3, borderRadius: spacing.radiusMd, marginTop: spacing.space3, marginBottom: spacing.space2 },
+  sectionTitle: { flex: 1, fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold, color: colors.primaryDark },
+  countBadge: { backgroundColor: colors.white, paddingHorizontal: spacing.space2, paddingVertical: 2, borderRadius: spacing.radiusFull, minWidth: 22, alignItems: 'center' },
+  countBadgeText: { fontSize: 11, fontWeight: typography.weightBold, color: colors.primaryDark },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space3, marginBottom: spacing.space2 },
-  avatar: { width: 40, height: 40, borderRadius: spacing.radiusFull, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: colors.primaryDark, fontWeight: typography.weightBold },
-  name: { fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
-  course: { fontSize: 11, color: colors.gray500, marginTop: 1 },
+  avatar: { width: 36, height: 36, borderRadius: spacing.radiusFull, backgroundColor: colors.gray100, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: colors.primaryDark, fontWeight: typography.weightBold, fontSize: typography.fontSizeSm },
+  name: { flex: 1, fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
   statusBadge: { paddingHorizontal: spacing.space2, paddingVertical: 3, borderRadius: spacing.radiusFull },
-  badge_active: { backgroundColor: 'rgba(42,90,109,0.1)' },
+  badge_active: { backgroundColor: 'rgba(225,173,1,0.12)' },
   badge_completed: { backgroundColor: 'rgba(46,125,50,0.1)' },
   badge_dropped: { backgroundColor: 'rgba(211,47,47,0.08)' },
   statusText: { fontSize: 10, fontWeight: typography.weightMedium, color: colors.gray600, textTransform: 'capitalize' },

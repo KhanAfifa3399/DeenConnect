@@ -6,22 +6,28 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { getMyAssignedCourses } from '../../api/coursesApi';
-import { createAnnouncement } from '../../api/announcementsApi';
+// import { createAnnouncement } from '../../api/announcementsApi';
+import { createAnnouncement, updateAnnouncement } from '../../api/announcementsApi';
 
 const AUDIENCE_OPTIONS = [
   { value: 'students', label: 'My Students' },
   { value: 'all', label: 'Everyone' },
 ];
 
-function CreateAnnouncementScreen({ navigation }) {
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [audience, setAudience] = useState('students');
+function CreateAnnouncementScreen({ navigation, route }) {
+  const editingAnnouncement = route.params?.editingAnnouncement;
+  // const [title, setTitle] = useState('');
+  // const [message, setMessage] = useState('');
+  // const [audience, setAudience] = useState('students');
   const [courses, setCourses] = useState([]);
-  const [courseId, setCourseId] = useState(null);
+  // const [courseId, setCourseId] = useState(null);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [title, setTitle] = useState(editingAnnouncement?.title || '');
+const [message, setMessage] = useState(editingAnnouncement?.message || '');
+const [audience, setAudience] = useState(editingAnnouncement?.audience || 'students');
+const [courseId, setCourseId] = useState(editingAnnouncement?.course_id || null);
 
   useEffect(() => {
     getMyAssignedCourses()
@@ -30,7 +36,7 @@ function CreateAnnouncementScreen({ navigation }) {
       .finally(() => setLoadingCourses(false));
   }, []);
 
-  async function handleSubmit() {
+ async function handleSubmit() {
     setError('');
     if (!title.trim() || !message.trim()) {
       setError('Please fill in both a title and a message.');
@@ -39,21 +45,21 @@ function CreateAnnouncementScreen({ navigation }) {
 
     setSubmitting(true);
     try {
-      await createAnnouncement({
-        title: title.trim(),
-        message: message.trim(),
-        audience,
-        course_id: courseId,
-      });
-      Alert.alert('Posted', 'Your announcement has been posted.', [
+      const payload = { title: title.trim(), message: message.trim(), audience, course_id: courseId };
+      if (editingAnnouncement) {
+        await updateAnnouncement(editingAnnouncement.id, payload);
+      } else {
+        await createAnnouncement(payload);
+      }
+      Alert.alert('Success', editingAnnouncement ? 'Announcement updated.' : 'Your announcement has been posted.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to post announcement');
+      setError(err.response?.data?.message || 'Failed to save announcement');
     } finally {
       setSubmitting(false);
     }
-  }
+}
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -61,7 +67,8 @@ function CreateAnnouncementScreen({ navigation }) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={22} color={colors.gray900} />
         </Pressable>
-        <Text style={styles.topBarTitle}>Post Announcement</Text>
+        <Text style={styles.topBarTitle}>{editingAnnouncement ? 'Edit Announcement' : 'Post Announcement'}</Text>
+        <Text style={styles.submitButtonText}>{editingAnnouncement ? 'Save Changes' : 'Post Announcement'}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

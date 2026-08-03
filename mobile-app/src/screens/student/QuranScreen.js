@@ -9,6 +9,7 @@ import { getContentByType } from '../../api/quranContentApi';
 import { getAllDuas } from '../../api/duasApi';
 import { getAllDailySurahs } from '../../api/dailySurahApi';
 import { getFileUrl } from '../../utils/urls';
+import RepeatAudioPlayer from './RepeatAudioPlayer';
 
 const TABS = [
   { key: 'surah', label: 'Surah' },
@@ -16,6 +17,15 @@ const TABS = [
   { key: 'duas', label: 'Duas' },
   { key: 'daily', label: 'Daily Surah' },
 ];
+
+// Public Quran audio CDN (mp3quran.net) — Mishary Rashid Alafasy reciter.
+// Free, no API key, indexed by 3-digit surah number. Only works per full
+// Surah (a Juz/Para spans multiple surahs so it has no single audio file).
+const RECITER_FOLDER = 'afs';
+function getSurahAudioUrl(surahNumber) {
+  if (!surahNumber) return null;
+  return `https://server8.mp3quran.net/${RECITER_FOLDER}/${String(surahNumber).padStart(3, '0')}.mp3`;
+}
 
 function QuranScreen() {
   const [activeTab, setActiveTab] = useState('surah');
@@ -53,22 +63,35 @@ function QuranScreen() {
   function renderItem({ item }) {
     if (activeTab === 'surah' || activeTab === 'para') {
       return (
-        <Pressable
-          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => item.pdf_url && openPdf(item.pdf_url)}
-        >
-          <View style={styles.rowIcon}>
-            <Feather name="file-text" size={18} color={colors.primaryDark} />
-          </View>
-          <View style={styles.rowBody}>
-            <Text style={styles.rowTitle}>{activeTab === 'surah' ? 'Surah' : 'Para'} {item.number} — {item.name}</Text>
-          </View>
-          {item.pdf_url ? (
-            <Feather name="download" size={16} color={colors.primary} />
+        <View style={styles.contentCard}>
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={() => item.pdf_url && openPdf(item.pdf_url)}
+          >
+            <View style={styles.rowIcon}>
+              <Feather name="file-text" size={18} color={colors.primaryDark} />
+            </View>
+            <View style={styles.rowBody}>
+              <Text style={styles.rowTitle}>{activeTab === 'surah' ? 'Surah' : 'Para'} {item.number} — {item.name}</Text>
+            </View>
+            {item.pdf_url ? (
+              <Feather name="download" size={16} color={colors.primary} />
+            ) : (
+              <Text style={styles.noPdfText}>No PDF</Text>
+            )}
+          </Pressable>
+
+          {activeTab === 'surah' ? (
+            <RepeatAudioPlayer audioUri={getSurahAudioUrl(item.number)} />
           ) : (
-            <Text style={styles.noPdfText}>No PDF</Text>
+            <View style={styles.unavailableBox}>
+              <Feather name="info" size={12} color={colors.gray400} />
+              <Text style={styles.unavailableNote}>
+                Audio isn't available per-Para since a Para spans multiple Surahs.
+              </Text>
+            </View>
           )}
-        </Pressable>
+        </View>
       );
     }
 
@@ -87,19 +110,23 @@ function QuranScreen() {
             )}
             {item.reference && <Text style={styles.duaReference}>{item.reference}</Text>}
           </View>
+          <RepeatAudioPlayer audioUri={item.audio_url ? getFileUrl(item.audio_url) : null} />
         </View>
       );
     }
 
     return (
-      <View style={styles.row}>
-        <View style={styles.rowIcon}>
-          <Feather name="moon" size={18} color={colors.primaryDark} />
+      <View style={styles.contentCard}>
+        <View style={styles.row}>
+          <View style={styles.rowIcon}>
+            <Feather name="moon" size={18} color={colors.primaryDark} />
+          </View>
+          <View style={styles.rowBody}>
+            <Text style={styles.rowTitle}>Surah {item.surah_number} — {item.surah_name}</Text>
+            {item.note && <Text style={styles.rowNote}>{item.note}</Text>}
+          </View>
         </View>
-        <View style={styles.rowBody}>
-          <Text style={styles.rowTitle}>Surah {item.surah_number} — {item.surah_name}</Text>
-          {item.note && <Text style={styles.rowNote}>{item.note}</Text>}
-        </View>
+        <RepeatAudioPlayer audioUri={getSurahAudioUrl(item.surah_number)} />
       </View>
     );
   }
@@ -159,9 +186,11 @@ const styles = StyleSheet.create({
   tabButtonText: { fontSize: typography.fontSizeXs, color: colors.gray600, fontWeight: typography.weightMedium },
   tabButtonTextActive: { color: colors.white },
   listContent: { paddingHorizontal: spacing.space5, paddingBottom: spacing.space10 },
+  contentCard: {
+    backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space3, marginBottom: spacing.space2,
+  },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.space3,
-    backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space4, marginBottom: spacing.space2,
   },
   rowPressed: { opacity: 0.8 },
   rowIcon: {
@@ -172,6 +201,8 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightMedium, color: colors.gray900 },
   rowNote: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 2 },
   noPdfText: { fontSize: typography.fontSizeXs, color: colors.gray300 },
+  unavailableBox: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: spacing.space2, paddingLeft: 2 },
+  unavailableNote: { fontSize: 11, color: colors.gray400, fontStyle: 'italic', flex: 1 },
   duaCard: {
     backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space4, marginBottom: spacing.space3, gap: spacing.space2,
   },

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, TextInput, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, TextInput, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { getMyAssignedCourses } from '../../api/coursesApi';
+import { getFileUrl } from '../../api/urls';
 
 function MyClassesScreen() {
   const navigation = useNavigation();
@@ -47,7 +48,11 @@ function MyClassesScreen() {
         onPress={() => navigation.navigate('TeacherCourseDetails', { courseId: item.id, courseTitle: item.title })}
       >
         <View style={styles.thumb}>
-          <Text style={styles.thumbText}>{item.title.charAt(0)}</Text>
+          {item.thumbnail ? (
+            <Image source={{ uri: getFileUrl(item.thumbnail) }} style={styles.thumbImage} />
+          ) : (
+            <Text style={styles.thumbText}>{item.title.charAt(0)}</Text>
+          )}
         </View>
         <View style={styles.cardBody}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
@@ -109,7 +114,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: typography.fontSizeSm, color: colors.gray900 },
   listContent: { paddingHorizontal: spacing.space5, paddingBottom: spacing.space10 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space4, marginBottom: spacing.space3, gap: spacing.space3, shadowColor: colors.gray900, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
-  thumb: { width: 48, height: 48, borderRadius: spacing.radiusMd, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  thumb: { width: 48, height: 48, borderRadius: spacing.radiusMd, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  thumbImage: { width: '100%', height: '100%' },
   thumbText: { color: colors.white, fontSize: typography.fontSizeLg, fontWeight: typography.weightBold },
   cardBody: { flex: 1 },
   cardTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold, color: colors.gray900 },

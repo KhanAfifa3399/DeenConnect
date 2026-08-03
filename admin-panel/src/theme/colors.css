@@ -1,25 +1,24 @@
 :root {
-  /* Brand colors — Navy Blue palette */
-  --color-primary: #2A5A6D;
-  --color-primary-light: #8FB7C2;
-  --color-primary-dark: #0A2E36;
-  --color-btn-hover: #166c80;
+  /* Brand colors — Gold / Saffron palette */
+  --color-primary: #E1AD01;
+  --color-primary-light: #F0C42D;
+  --color-primary-dark: #C78C06;
 
-  --color-accent: #8FB7C2;
-  --color-accent-light: #D2E0E6;
+  --color-accent: #FFDB58;
+  --color-accent-light: #FFEA9D;
 
   /* Neutrals */
   --color-white: #FFFFFF;
-  --color-gray-50: #F7FAFB;
-  --color-gray-100: #EDF2F4;
-  --color-gray-200: #D2E0E6;
-  --color-gray-300: #B0C4CC;
-  --color-gray-400: #8FB7C2;
-  --color-gray-500: #5D8494;
-  --color-gray-600: #3E6575;
-  --color-gray-700: #2A5A6D;
-  --color-gray-800: #163642;
-  --color-gray-900: #0A2E36;
+  --color-gray-50: #FFFBF0;
+  --color-gray-100: #FFF6DC;
+  --color-gray-200: #FFEA9D;
+  --color-gray-300: #FFDB58;
+  --color-gray-400: #F0C42D;
+  --color-gray-500: #E1AD01;
+  --color-gray-600: #C78C06;
+  --color-gray-700: #9C6F05;
+  --color-gray-800: #6E4E03;
+  --color-gray-900: #4A3402;
 
   /* Semantic colors */
   --color-success: #2E7D32;
@@ -38,8 +37,8 @@
 
 [data-theme="dark"] {
   --bg-primary: var(--color-gray-900);
-  --bg-secondary: var(--color-gray-800);
-  --bg-card: var(--color-gray-800);
+  --bg-secondary: #3A2A02;
+  --bg-card: #3A2A02;
   --text-primary: var(--color-gray-50);
   --text-secondary: var(--color-gray-300);
   --border-color: var(--color-gray-700);

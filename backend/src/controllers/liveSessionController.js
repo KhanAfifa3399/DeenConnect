@@ -37,6 +37,17 @@ async function getMyUpcomingSessions(req, res) {
     }
 }
 
+async function getMyUpcomingSessionsForTeacher(req, res) {
+    try {
+        const teacherId = req.user.userId;
+        const sessions = await liveSessionRepository.getUpcomingSessionsForTeacher(teacherId);
+        res.status(200).json({ success: true, data: sessions });
+    } catch (error) {
+        console.error('Error fetching teacher upcoming sessions:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch upcoming sessions' });
+    }
+}
+
 async function updateStatus(req, res) {
     try {
         const { status } = req.body;
@@ -68,4 +79,14 @@ async function deleteSession(req, res) {
     }
 }
 
-module.exports = { createSession, getSessionsByWeek, getMyUpcomingSessions, updateStatus, deleteSession };
+async function getMyUpcomingAsTeacher(req, res) {
+    try {
+        const sessions = await liveSessionRepository.getUpcomingSessionsForTeacher(req.user.userId);
+        res.status(200).json({ success: true, data: sessions });
+    } catch (error) {
+        console.error('Error fetching teacher upcoming sessions:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch upcoming sessions' });
+    }
+}
+
+module.exports = { createSession, getSessionsByWeek, getMyUpcomingSessions, getMyUpcomingSessionsForTeacher, getMyUpcomingAsTeacher, updateStatus, deleteSession };

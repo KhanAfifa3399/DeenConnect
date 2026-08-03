@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, LayoutAnimation, Linking, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
+import { getCourseById } from '../../api/coursesApi';
+import { getFileUrl } from '../../api/urls';
 import { getWeeksByCourse } from '../../api/weeksApi';
 import { getLecturesByWeek } from '../../api/lecturesApi';
-import { getSessionsByWeek } from '../../api/liveSessionsApi';
+// import { getSessionsByWeek } from '../../api/liveSessionsApi';
 import UploadLectureModal from './UploadLectureModal';
 import AttendanceModal from './AttendanceModal';
+import CreateLiveSessionModal from './CreateLiveSessionModal';
+import { getSessionsByWeek, updateSessionStatus } from '../../api/liveSessionsApi';
+
+// import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
+
 
 function TeacherCourseDetailsScreen({ route, navigation }) {
   const { courseId, courseTitle } = route.params;
+  const [course, setCourse] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedWeek, setExpandedWeek] = useState(null);
@@ -20,12 +28,16 @@ function TeacherCourseDetailsScreen({ route, navigation }) {
   const [sessionsByWeek, setSessionsByWeek] = useState({});
   const [loadingWeekId, setLoadingWeekId] = useState(null);
   const [uploadModalWeek, setUploadModalWeek] = useState(null);
+  const [sessionModalWeek, setSessionModalWeek] = useState(null);
   const [attendanceSession, setAttendanceSession] = useState(null);
 
   useEffect(() => {
-    getWeeksByCourse(courseId)
-      .then(setWeeks)
-      .catch((err) => console.error('Failed to load weeks:', err))
+    Promise.all([getCourseById(courseId), getWeeksByCourse(courseId)])
+      .then(([courseData, weeksData]) => {
+        setCourse(courseData);
+        setWeeks(weeksData);
+      })
+      .catch((err) => console.error('Failed to load course:', err))
       .finally(() => setLoading(false));
   }, [courseId]);
 
@@ -39,6 +51,29 @@ function TeacherCourseDetailsScreen({ route, navigation }) {
     setExpandedWeek(weekId);
     await refreshWeekContent(weekId);
   }
+
+  function handleCancelSession(session, weekId) {
+  Alert.alert(
+    'Cancel Live Session',
+    `Are you sure you want to cancel "${session.title}"? Students will no longer be able to join.`,
+    [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes, Cancel',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await updateSessionStatus(session.id, 'cancelled');
+            refreshWeekContent(weekId);
+          } catch (err) {
+            console.error('Failed to cancel session:', err);
+            Alert.alert('Error', 'Failed to cancel the session. Please try again.');
+          }
+        },
+      },
+    ]
+  );
+}
 
   async function refreshWeekContent(weekId) {
     setLoadingWeekId(weekId);
@@ -74,6 +109,9 @@ function TeacherCourseDetailsScreen({ route, navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {course?.thumbnail && (
+          <Image source={{ uri: getFileUrl(course.thumbnail) }} style={styles.heroThumbnail} />
+        )}
         {weeks.map((week) => {
           const isExpanded = expandedWeek === week.id;
           const lectures = lecturesByWeek[week.id];
@@ -112,29 +150,46 @@ function TeacherCourseDetailsScreen({ route, navigation }) {
                       )}
 
                       <View style={[styles.subHeader, { marginTop: spacing.space4 }]}>
-                        <Text style={styles.subHeaderTitle}>Live Sessions</Text>
-                      </View>
+  <Text style={styles.subHeaderTitle}>Live Sessions</Text>
+  <Pressable style={styles.addButton} onPress={() => setSessionModalWeek(week.id)}>
+    <Feather name="calendar" size={13} color={colors.primary} />
+    <Text style={styles.addButtonText}>Schedule</Text>
+  </Pressable>
+</View>
 
                       {sessions?.length > 0 ? (
-                        sessions.map((session) => (
-                          <View key={session.id} style={styles.sessionRow}>
-                            <View style={{ flex: 1 }}>
-                              <Text style={styles.itemText} numberOfLines={1}>{session.title}</Text>
-                              <Text style={styles.sessionMeta}>
-                                {new Date(session.scheduled_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </Text>
-                            </View>
-                            <Pressable style={styles.smallActionBtn} onPress={() => Linking.openURL(session.meeting_link)}>
-                              <Feather name="video" size={13} color={colors.primary} />
-                            </Pressable>
-                            <Pressable style={styles.smallActionBtn} onPress={() => setAttendanceSession(session)}>
-                              <Feather name="check-square" size={13} color={colors.primary} />
-                            </Pressable>
-                          </View>
-                        ))
-                      ) : (
-                        <Text style={styles.emptyText}>No live sessions scheduled.</Text>
-                      )}
+  sessions.map((session) => (
+    <View key={session.id} style={styles.sessionRow}>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={[styles.itemText, session.status === 'cancelled' && styles.itemTextCancelled]}
+          numberOfLines={1}
+        >
+          {session.title}
+        </Text>
+        <Text style={styles.sessionMeta}>
+          {new Date(session.scheduled_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          {session.status === 'cancelled' ? '  ·  Cancelled' : ''}
+        </Text>
+      </View>
+      {session.status !== 'cancelled' && (
+        <>
+          <Pressable style={styles.smallActionBtn} onPress={() => Linking.openURL(session.meeting_link)}>
+            <Feather name="video" size={13} color={colors.primary} />
+          </Pressable>
+          <Pressable style={styles.smallActionBtn} onPress={() => setAttendanceSession(session)}>
+            <Feather name="check-square" size={13} color={colors.primary} />
+          </Pressable>
+          <Pressable style={styles.smallActionBtnDanger} onPress={() => handleCancelSession(session, week.id)}>
+            <Feather name="x" size={13} color={colors.error} />
+          </Pressable>
+        </>
+      )}
+    </View>
+  ))
+) : (
+  <Text style={styles.emptyText}>No live sessions scheduled.</Text>
+)}
                     </>
                   )}
                 </View>
@@ -161,6 +216,16 @@ function TeacherCourseDetailsScreen({ route, navigation }) {
         session={attendanceSession}
         onClose={() => setAttendanceSession(null)}
       />
+      <CreateLiveSessionModal
+  visible={!!sessionModalWeek}
+  weekId={sessionModalWeek}
+  onClose={() => setSessionModalWeek(null)}
+  onCreated={() => {
+    const weekId = sessionModalWeek;
+    setSessionModalWeek(null);
+    refreshWeekContent(weekId);
+  }}
+/>
     </SafeAreaView>
   );
 }
@@ -186,6 +251,8 @@ const styles = StyleSheet.create({
   sessionMeta: { fontSize: 11, color: colors.gray500, marginTop: 1 },
   smallActionBtn: { width: 30, height: 30, borderRadius: spacing.radiusMd, backgroundColor: colors.gray50, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: typography.fontSizeXs, color: colors.gray400, paddingVertical: spacing.space2 },
+  itemTextCancelled: { color: colors.gray400, textDecorationLine: 'line-through' },
+smallActionBtnDanger: { width: 30, height: 30, borderRadius: spacing.radiusMd, backgroundColor: 'rgba(211,47,47,0.08)', alignItems: 'center', justifyContent: 'center' },
 });
 
 export default TeacherCourseDetailsScreen;

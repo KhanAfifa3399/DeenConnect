@@ -87,9 +87,9 @@ function EditProfileScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Field label="Full Name" value={fullName} onChangeText={setFullName} placeholder="Your full name" />
-        <Field label="Contact Number" value={phone} onChangeText={setPhone} placeholder="e.g. 03001234567" keyboardType="phone-pad" />
-        <Field label="City" value={city} onChangeText={setCity} placeholder="e.g. Karachi" />
-        <Field label="State / Province" value={state} onChangeText={setState} placeholder="e.g. Sindh" />
+        <Field label="Contact Number" value={phone} onChangeText={setPhone} placeholder="+ 91 123 456 7890" keyboardType="phone-pad" />
+        <Field label="City" value={city} onChangeText={setCity} placeholder="e.g. Mumbai" />
+        <Field label="State / Province" value={state} onChangeText={setState} placeholder="e.g. Maharshtra" />
         <Field label="Address" value={address} onChangeText={setAddress} placeholder="Street address" multiline numberOfLines={2} />
         <Field label="Education" value={education} onChangeText={setEducation} placeholder="e.g. Bachelor's in Islamic Studies" />
 

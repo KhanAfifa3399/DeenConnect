@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -13,6 +13,9 @@ import { getMyEnrollments } from '../../api/enrollmentsApi';
 import { getMyUpcomingSessions } from '../../api/liveSessionsApi';
 import { getStudentAnnouncements } from '../../api/announcementsApi';
 import { getUser, getLastSeenNotifTime } from '../../utils/secureStorage';
+import { getFileUrl } from '../../api/urls';
+import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
+
 
 function StatPill({ icon, value, label }) {
   return (
@@ -56,39 +59,33 @@ function CourseBrowseCard({ course, index, isEnrolled, onPress }) {
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(index * 70)}>
       <Pressable style={({ pressed }) => [styles.browseCard, pressed && styles.browseCardPressed]} onPress={onPress}>
-        <LinearGradient
-          colors={[colors.primaryDark, colors.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.browseThumb}
-        >
-          <Text style={styles.browseThumbText}>{course.title.charAt(0)}</Text>
+        <View style={styles.browseThumb}>
+          <View style={styles.browseThumbInner}>
+            {course.thumbnail ? (
+              <Image source={{ uri: getFileUrl(course.thumbnail) }} style={styles.browseThumbImage} />
+            ) : (
+              <LinearGradient
+                colors={[colors.primaryDark, colors.primary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.browseThumbInner}
+              >
+                <Text style={styles.browseThumbText}>{course.title.charAt(0)}</Text>
+              </LinearGradient>
+            )}
+          </View>
+
           {isEnrolled && (
             <View style={styles.enrolledPill}>
               <Feather name="check" size={10} color={colors.white} />
             </View>
           )}
-        </LinearGradient>
+        </View>
 
         <View style={styles.browseBody}>
           <Text style={styles.browseSubject}>{course.subject_name}</Text>
           <Text style={styles.browseTitle} numberOfLines={2}>{course.title}</Text>
-
-          <View style={styles.browseMetaRow}>
-            <Feather name="user" size={11} color={colors.gray500} />
-            <Text style={styles.browseMetaText} numberOfLines={1}>{course.teacher_name}</Text>
-          </View>
-          <View style={styles.browseMetaRow}>
-            <Feather name="calendar" size={11} color={colors.gray500} />
-            <Text style={styles.browseMetaText}>{course.total_weeks} weeks</Text>
-            <View style={styles.metaDivider} />
-            <Text style={styles.browsePrice}>{Number(course.price) === 0 ? 'Free' : `$${course.price}`}</Text>
-          </View>
-
-          <View style={styles.browseButton}>
-            <Text style={styles.browseButtonText}>{isEnrolled ? 'Continue' : 'View Details'}</Text>
-            <Feather name="arrow-right" size={13} color={colors.primary} />
-          </View>
+          {/* ... rest of your component */}
         </View>
       </Pressable>
     </Animated.View>
@@ -162,8 +159,8 @@ function StudentDashboardScreen() {
 
   function SessionCard({ session, index, onPress }) {
     const date = new Date(session.scheduled_at);
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const timeStr = formatWallClockTime(session.scheduled_at);
+const dateStr = formatWallClockDate(session.scheduled_at);
     const isLive = session.status === 'ongoing';
 
     return (
@@ -351,9 +348,26 @@ const styles = StyleSheet.create({
     shadowColor: colors.gray900, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 3,
   },
   browseCardPressed: { opacity: 0.92 },
-  browseThumb: {
-    width: 68, height: 68, borderRadius: spacing.radiusLg, alignItems: 'center', justifyContent: 'center', position: 'relative',
-  },
+ // In StyleSheet.create:
+browseThumb: {
+  width: 68,
+  height: 68,
+  borderRadius: spacing.radiusLg,
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+  backgroundColor: colors.gray100,
+  // Removed overflow: 'hidden' from here
+},
+browseThumbInner: {
+  width: '100%',
+  height: '100%',
+  borderRadius: spacing.radiusLg,
+  overflow: 'hidden', // Keep overflow hidden only for the inner image/gradient
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+browseThumbImage: { width: '100%', height: '100%' },
   browseThumbText: { color: colors.white, fontSize: typography.fontSize2xl, fontWeight: typography.weightBold },
   enrolledPill: {
     position: 'absolute', bottom: -4, right: -4, width: 20, height: 20, borderRadius: spacing.radiusFull,

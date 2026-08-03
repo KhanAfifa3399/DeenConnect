@@ -19,7 +19,20 @@ export async function deleteCourse(id) {
   const response = await axiosClient.delete(`/courses/${id}`);
   return response.data;
 }
+
 export async function getCourseById(id) {
   const response = await axiosClient.get(`/courses/${id}`);
+  return response.data.data;
+}
+
+// Uploads/replaces the course thumbnail image.
+// Adjust the endpoint/field name below to match your backend route if it differs.
+export async function uploadCourseThumbnail(id, file) {
+  const formData = new FormData();
+  formData.append('thumbnail', file);
+
+  const response = await axiosClient.put(`/courses/${id}/thumbnail`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data.data;
 }

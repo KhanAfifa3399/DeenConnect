@@ -54,7 +54,7 @@ async function handleSubmit(e) {
     }
 
     const paddedTime = `${sessionHour.padStart(2, '0')}:${sessionMinute.padStart(2, '0')}`;
-    const isoString = new Date(`${sessionDate}T${paddedTime}:00`).toISOString();
+    const isoString = `${sessionDate}T${paddedTime}:00`;
 
     setSaving(true);
     try {
