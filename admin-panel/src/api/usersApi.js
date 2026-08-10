@@ -30,3 +30,18 @@ export async function uploadProfilePhoto(formData) {
   });
   return response.data.data;
 }
+
+export async function getPendingTeachers() {
+  const response = await axiosClient.get('/users/pending-teachers');
+  return response.data.data;
+}
+
+export async function approveTeacher(id) {
+  const response = await axiosClient.put(`/users/${id}/approve`);
+  return response.data.data;
+}
+
+export async function rejectTeacher(id) {
+  const response = await axiosClient.put(`/users/${id}/reject`);
+  return response.data.data;
+}

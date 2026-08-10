@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useState, useRef } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { PanResponder } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+// import * as FileSystem from 'expo-file-system';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
@@ -13,7 +14,7 @@ import { getFileUrl } from '../../utils/urls';
 function LecturePlayerScreen({ route, navigation }) {
   const { lecture } = route.params;
   const videoRef = useRef(null);
-  
+
   const [isBuffering, setIsBuffering] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -21,14 +22,14 @@ function LecturePlayerScreen({ route, navigation }) {
   const [durationMillis, setDurationMillis] = useState(1);
   const [showOverlay, setShowOverlay] = useState(true);
   const [barWidth, setBarWidth] = useState(300);
-  
+
   // Download states
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [localVideoUri, setLocalVideoUri] = useState(null);
 
-  const videoSource = localVideoUri 
-    ? { uri: localVideoUri } 
+  const videoSource = localVideoUri
+    ? { uri: localVideoUri }
     : lecture.video_url ? { uri: getFileUrl(lecture.video_url) } : null;
 
   // Handle Video Download for Offline playback
@@ -70,6 +71,31 @@ function LecturePlayerScreen({ route, navigation }) {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      if (localVideoUri) {
+        const available = await Sharing.isAvailableAsync();
+        if (available) {
+          await Sharing.shareAsync(localVideoUri, {
+            mimeType: 'video/mp4',
+            dialogTitle: lecture.title,
+          });
+          return;
+        }
+      }
+
+      if (lecture.video_url) {
+        await Share.share({
+          title: lecture.title,
+          message: `Watch "${lecture.title}" on DeenConnect: ${getFileUrl(lecture.video_url)}`,
+        });
+      } else {
+        Alert.alert('Nothing to Share', 'This lecture has no video yet.');
+      }
+    } catch (err) {
+      console.error('Share failed:', err.message);
+    }
+  };
   // Cycle through playback speeds
   const togglePlaybackSpeed = async () => {
     const speeds = [1.0, 1.25, 1.5, 2.0];
@@ -111,7 +137,7 @@ function LecturePlayerScreen({ route, navigation }) {
   const touchStartXRef = useRef(0);
   const initialPositionRef = useRef(0);
 
-// Bulletproof PanResponder with layout fallback
+  // Bulletproof PanResponder with layout fallback
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -167,8 +193,8 @@ function LecturePlayerScreen({ route, navigation }) {
 
       {/* Video Player or Placeholder */}
       {videoSource ? (
-        <Pressable 
-          style={styles.videoWrapper} 
+        <Pressable
+          style={styles.videoWrapper}
           onPress={() => setShowOverlay(!showOverlay)}
         >
           <Video
@@ -212,7 +238,7 @@ function LecturePlayerScreen({ route, navigation }) {
                   <Text style={styles.timeText}>
                     {formatTime(positionMillis)} / {formatTime(durationMillis)}
                   </Text>
-                  
+
                   <View style={styles.overlayRightIcons}>
                     <Pressable style={styles.smallIconButton} onPress={togglePlaybackSpeed}>
                       <Text style={styles.speedText}>{playbackRate}x</Text>
@@ -225,7 +251,7 @@ function LecturePlayerScreen({ route, navigation }) {
 
                 {/* Progress Bar Track with Smooth dx PanHandlers */}
                 {/* Progress Bar Track with Safe Fallback Width */}
-                <View 
+                <View
                   style={styles.progressBarContainer}
                   onLayout={(event) => {
                     const { width } = event.nativeEvent.layout;
@@ -262,35 +288,46 @@ function LecturePlayerScreen({ route, navigation }) {
               <Feather name="book-open" size={12} color={colors.primary} />
               <Text style={styles.badgeText}>LECTURE SESSION</Text>
             </View>
-            
+
             <View style={styles.actionIconsRow}>
-              <Pressable 
-                style={styles.iconActionBtn} 
-                onPress={handleDownloadVideo} 
+              <Pressable
+                style={styles.iconActionBtn}
+                onPress={handleDownloadVideo}
                 disabled={isDownloading}
               >
                 {isDownloading ? (
                   <ActivityIndicator size="small" color={colors.gray700} />
                 ) : (
-                  <Feather 
-                    name={localVideoUri ? "check-circle" : "download"} 
-                    size={20} 
-                    color={localVideoUri ? '#16a34a' : colors.gray700} 
+                  <Feather
+                    name={localVideoUri ? "check-circle" : "download"}
+                    size={20}
+                    color={localVideoUri ? '#16a34a' : colors.gray700}
                   />
                 )}
               </Pressable>
-              
-              <Pressable 
-                style={styles.iconActionBtn} 
-                onPress={() => Alert.alert("Share", "Share lecture option")}
+
+              <Pressable
+                style={styles.iconActionBtn}
+                onPress={handleShare}
               >
                 <Feather name="share-2" size={20} color={colors.gray700} />
               </Pressable>
             </View>
           </View>
-
+{isDownloading && (
+  <View style={styles.downloadBanner}>
+    <View style={styles.downloadBannerTop}>
+      <Feather name="download" size={13} color={colors.primary} />
+      <Text style={styles.downloadBannerText}>Downloading for offline viewing...</Text>
+      <Text style={styles.downloadBannerPercent}>{Math.round(downloadProgress * 100)}%</Text>
+    </View>
+    <View style={styles.downloadProgressTrack}>
+      <View style={[styles.downloadProgressFill, { width: `${downloadProgress * 100}%` }]} />
+    </View>
+  </View>
+)}
           <Text style={styles.detailTitle}>{lecture.title}</Text>
-          
+
           <View style={styles.metadataCard}>
             <View style={styles.metaItem}>
               <Feather name="calendar" size={14} color={colors.gray500} />
@@ -323,11 +360,11 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 4 },
   topBarTitle: { flex: 1, fontSize: typography.fontSizeBase, fontWeight: typography.weightMedium, color: colors.white },
-  
+
   videoWrapper: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000', justifyContent: 'center', overflow: 'hidden' },
   video: { width: '100%', height: '100%' },
   bufferSpinner: { position: 'absolute', alignSelf: 'center', zIndex: 5 },
-  
+
   videoOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
@@ -417,7 +454,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', gap: spacing.space3, paddingHorizontal: spacing.space6,
   },
   noVideoText: { color: colors.gray400, fontSize: typography.fontSizeSm, textAlign: 'center' },
-  
+
   details: { padding: spacing.space5, backgroundColor: colors.white, flex: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -10 },
   scrollContent: { paddingBottom: spacing.space6 },
   metaHeader: {
@@ -498,6 +535,42 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   detailDesc: { fontSize: typography.fontSizeSm, color: colors.gray600, lineHeight: 22 },
+  downloadBanner: {
+  backgroundColor: '#f8fafc',
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: '#e2e8f0',
+  padding: spacing.space3,
+  marginBottom: spacing.space4,
+},
+downloadBannerTop: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6,
+  marginBottom: spacing.space2,
+},
+downloadBannerText: {
+  flex: 1,
+  fontSize: 12,
+  color: colors.gray700,
+  fontWeight: '500',
+},
+downloadBannerPercent: {
+  fontSize: 12,
+  fontWeight: '700',
+  color: colors.primary,
+},
+downloadProgressTrack: {
+  height: 4,
+  backgroundColor: '#e2e8f0',
+  borderRadius: 2,
+  overflow: 'hidden',
+},
+downloadProgressFill: {
+  height: '100%',
+  backgroundColor: colors.primary,
+  borderRadius: 2,
+},
 });
 
 export default LecturePlayerScreen;

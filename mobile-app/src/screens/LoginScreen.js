@@ -108,6 +108,11 @@ function LoginScreen({ navigation }) {
                             <Text style={styles.buttonText}>Sign In</Text>
                         )}
                     </Pressable>
+                    <Pressable style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
+                        <Text style={styles.registerLinkText}>
+                            Don't have an account? <Text style={styles.registerLinkBold}>Register</Text>
+                        </Text>
+                    </Pressable>
                 </Animated.View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -210,6 +215,9 @@ const styles = StyleSheet.create({
         right: spacing.space3,
         padding: spacing.space2,
     },
+    registerLink: { alignItems: 'center', marginTop: spacing.space4 },
+registerLinkText: { fontSize: typography.fontSizeSm, color: colors.gray600 },
+registerLinkBold: { color: colors.primary, fontWeight: typography.weightSemibold },
 });
 
 export default LoginScreen;

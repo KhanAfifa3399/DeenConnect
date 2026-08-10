@@ -72,4 +72,42 @@ async function updateProfilePicture(id, profilePictureUrl) {
     return result.rows[0] || null;
 }
 
-module.exports = { getAllUsers, getUserById, getUserByEmail, createUser, updateUser, updatePassword, updateProfilePicture, deactivateUser };
+async function createPendingTeacher({ full_name, email, hashedPassword, phone }) {
+    const result = await pool.query(
+        `INSERT INTO users (full_name, email, password, role, phone, approval_status)
+         VALUES ($1, $2, $3, 'teacher', $4, 'pending')
+         RETURNING id, full_name, email, role, approval_status, created_at`,
+        [full_name, email, hashedPassword, phone || null]
+    );
+    return result.rows[0];
+}
+
+async function getPendingTeachers() {
+    const result = await pool.query(
+        `SELECT id, full_name, email, phone, created_at FROM users
+         WHERE role = 'teacher' AND approval_status = 'pending' AND is_active = true
+         ORDER BY created_at ASC`
+    );
+    return result.rows;
+}
+
+async function approveTeacher(id) {
+    const result = await pool.query(
+        `UPDATE users SET approval_status = 'approved', updated_at = NOW()
+         WHERE id = $1 AND role = 'teacher' RETURNING id, full_name, approval_status`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+async function rejectTeacher(id) {
+    const result = await pool.query(
+        `UPDATE users SET approval_status = 'rejected', is_active = false, updated_at = NOW()
+         WHERE id = $1 AND role = 'teacher' RETURNING id, full_name, approval_status`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+module.exports = { getAllUsers, getUserById, getUserByEmail, createUser, updateUser, updatePassword, updateProfilePicture, deactivateUser, createPendingTeacher, getPendingTeachers, approveTeacher, rejectTeacher };
+

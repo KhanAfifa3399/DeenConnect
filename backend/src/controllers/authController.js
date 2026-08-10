@@ -21,12 +21,20 @@ async function login(req, res) {
             return res.status(403).json({ success: false, message: 'This account has been deactivated' });
         }
 
+        if (user.role === 'teacher' && user.approval_status === 'pending') {
+            return res.status(403).json({ success: false, message: 'Your account is awaiting Admin approval. Please check back soon.' });
+        }
+
+        if (user.role === 'teacher' && user.approval_status === 'rejected') {
+            return res.status(403).json({ success: false, message: 'Your teacher application was not approved. Please contact the Admin.' });
+        }
+
         const token = jwt.sign(
             { userId: user.id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
-        await activityLogRepository.log(user.id, 'User logged in', 'user', user.id, `${user.email} logged in`);
+
         res.status(200).json({
             success: true,
             data: {
@@ -44,7 +52,6 @@ async function login(req, res) {
         res.status(500).json({ success: false, message: 'Login failed' });
     }
 }
-
 async function register(req, res) {
     try {
         const { full_name, email, password, phone } = req.body;
@@ -81,4 +88,27 @@ async function register(req, res) {
     }
 }
 
-module.exports = { login, register };
+async function registerTeacher(req, res) {
+    try {
+        const { full_name, email, password, phone } = req.body;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newTeacher = await userRepository.createPendingTeacher({ full_name, email, hashedPassword, phone });
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration submitted. Your account will be reviewed by an Admin before you can log in.',
+            data: newTeacher,
+        });
+    } catch (error) {
+        if (error.code === '23505') {
+            return res.status(409).json({ success: false, message: 'An account with this email already exists' });
+        }
+        console.error('Error during teacher registration:', error.message);
+        res.status(500).json({ success: false, message: 'Registration failed' });
+    }
+}
+
+module.exports = { login, register, registerTeacher };
+

@@ -111,5 +111,43 @@ async function uploadPhoto(req, res) {
     }
 }
 
-module.exports = { getUsers, getUserById, createUser, updateUser, changePassword, uploadPhoto, deleteUser };
+async function getPendingTeachers(req, res) {
+    try {
+        const teachers = await userRepository.getPendingTeachers();
+        res.status(200).json({ success: true, data: teachers });
+    } catch (error) {
+        console.error('Error fetching pending teachers:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch pending teachers' });
+    }
+}
+
+async function approveTeacher(req, res) {
+    try {
+        const teacher = await userRepository.approveTeacher(req.params.id);
+        if (!teacher) {
+            return res.status(404).json({ success: false, message: 'Teacher not found' });
+        }
+        res.status(200).json({ success: true, data: teacher });
+    } catch (error) {
+        console.error('Error approving teacher:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to approve teacher' });
+    }
+}
+
+async function rejectTeacher(req, res) {
+    try {
+        const teacher = await userRepository.rejectTeacher(req.params.id);
+        if (!teacher) {
+            return res.status(404).json({ success: false, message: 'Teacher not found' });
+        }
+        res.status(200).json({ success: true, data: teacher });
+    } catch (error) {
+        console.error('Error rejecting teacher:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to reject teacher' });
+    }
+}
+
+module.exports = { getUsers, getUserById, createUser, updateUser, changePassword, uploadPhoto, deleteUser, getPendingTeachers, approveTeacher, rejectTeacher };
+
+
 

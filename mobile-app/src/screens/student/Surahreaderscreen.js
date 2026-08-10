@@ -415,6 +415,7 @@ function SurahReaderScreen({ route, navigation }) {
           data={ayahs}
           keyExtractor={(item) => String(item.number)}
           renderItem={renderAyah}
+          style={styles.ayahList}
           contentContainerStyle={styles.ayahContent}
           showsVerticalScrollIndicator={false}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
@@ -482,6 +483,7 @@ const styles = StyleSheet.create({
 
   errorBox: { alignItems: 'center', gap: spacing.space2, marginTop: spacing.space10 },
   errorText: { color: colors.gray500, fontSize: typography.fontSizeSm, textAlign: 'center', paddingHorizontal: spacing.space6 },
+  ayahList: { flex: 1 },
   ayahContent: { paddingHorizontal: spacing.space5, paddingBottom: spacing.space10 },
   ayahRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', gap: spacing.space3, paddingVertical: spacing.space4, borderBottomWidth: 1, borderBottomColor: colors.gray100 },
   ayahRowActive: { backgroundColor: colors.gray50, borderRadius: spacing.radiusMd, borderBottomWidth: 0, paddingHorizontal: spacing.space2 },

@@ -12,5 +12,8 @@ router.put('/:id', authenticate, userController.updateUser);
 router.delete('/:id', authenticate, authorize('admin'), userController.deleteUser);
 router.put('/me/password', authenticate, userController.changePassword);
 router.put('/me/photo', authenticate, uploadImage.single('photo'), userController.uploadPhoto);
+router.get('/pending-teachers', authenticate, authorize('admin'), userController.getPendingTeachers);
+router.put('/:id/approve', authenticate, authorize('admin'), userController.approveTeacher);
+router.put('/:id/reject', authenticate, authorize('admin'), userController.rejectTeacher);
 
 module.exports = router;
