@@ -2,7 +2,16 @@ const lectureRepository = require('../repositories/lectureRepository');
 
 async function getLecturesByWeek(req, res) {
     try {
-        const lectures = await lectureRepository.getLecturesByWeek(req.params.weekId);
+        const weekId = req.params.weekId;
+
+        if (req.user.role === 'student') {
+            const enrolled = await lectureRepository.isStudentEnrolledInWeek(weekId, req.user.userId);
+            if (!enrolled) {
+                return res.status(403).json({ success: false, message: 'You must enroll in this course to view its lectures' });
+            }
+        }
+
+        const lectures = await lectureRepository.getLecturesByWeek(weekId);
         res.status(200).json({ success: true, data: lectures });
     } catch (error) {
         console.error('Error fetching lectures:', error.message);
@@ -82,5 +91,6 @@ async function getMyMissingVideos(req, res) {
         res.status(500).json({ success: false, message: 'Failed to fetch lectures' });
     }
 }
+
 module.exports = { getLecturesByWeek, createLecture, updateLecture, deleteLecture, getMissingVideosForTeacher, getMyMissingVideos };
 // module.exports = { getLecturesByWeek, createLecture, deleteLecture };

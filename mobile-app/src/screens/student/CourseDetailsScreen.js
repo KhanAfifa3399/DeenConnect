@@ -71,7 +71,7 @@ function CourseDetailsScreen({ route, navigation }) {
   //   }
   // }
 
-  async function toggleWeek(weekId) {
+ async function toggleWeek(weekId) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (expandedWeek === weekId) {
@@ -79,6 +79,8 @@ function CourseDetailsScreen({ route, navigation }) {
       return;
     }
     setExpandedWeek(weekId);
+
+    if (!isEnrolled) return;
 
     if (!lecturesByWeek[weekId]) {
       setLoadingWeekId(weekId);
@@ -95,7 +97,7 @@ function CourseDetailsScreen({ route, navigation }) {
         setLoadingWeekId(null);
       }
     }
-  }
+}
 
   if (loading) {
     return (
@@ -190,34 +192,42 @@ function CourseDetailsScreen({ route, navigation }) {
                   })}
                 </View>
               )}
-              {isExpanded && (
-                <View style={styles.lecturesList}>
-                  {loadingWeekId === week.id ? (
-                    <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: spacing.space3 }} />
-                  ) : weekLectures?.length > 0 ? (
-                    weekLectures.map((lecture) => (
-                      <Pressable
-                        key={lecture.id}
-                        style={({ pressed }) => [styles.lectureRow, pressed && styles.lectureRowPressed]}
-                        onPress={() => navigation.navigate('LecturePlayer', { lecture })}
-                      >
-                        <View style={styles.lectureIconWrap}>
-                          <Feather name={lecture.video_url ? 'play-circle' : 'video-off'} size={18} color={lecture.video_url ? colors.primary : colors.gray300} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.lectureTitle} numberOfLines={1}>{lecture.title}</Text>
-                          {lecture.duration_minutes && (
-                            <Text style={styles.lectureDuration}>{lecture.duration_minutes} min</Text>
-                          )}
-                        </View>
-                        <Feather name="chevron-right" size={16} color={colors.gray300} />
-                      </Pressable>
-                    ))
-                  ) : (
-                    <Text style={styles.emptyLectures}>No lectures in this week yet.</Text>
-                  )}
-                </View>
-              )}
+             {isExpanded && (
+  <View style={styles.lecturesList}>
+    {!isEnrolled ? (
+      <View style={styles.lockedBox}>
+        <Feather name="lock" size={20} color={colors.gray400} />
+        <Text style={styles.lockedText}>Enroll in this course to unlock lectures and live sessions.</Text>
+        <Pressable style={styles.lockedEnrollBtn} onPress={() => setEnrollModalVisible(true)}>
+          <Text style={styles.lockedEnrollBtnText}>Enroll Now</Text>
+        </Pressable>
+      </View>
+    ) : loadingWeekId === week.id ? (
+      <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: spacing.space3 }} />
+    ) : weekLectures?.length > 0 ? (
+      weekLectures.map((lecture) => (
+        <Pressable
+          key={lecture.id}
+          style={({ pressed }) => [styles.lectureRow, pressed && styles.lectureRowPressed]}
+          onPress={() => navigation.navigate('LecturePlayer', { lecture })}
+        >
+          <View style={styles.lectureIconWrap}>
+            <Feather name={lecture.video_url ? 'play-circle' : 'video-off'} size={18} color={lecture.video_url ? colors.primary : colors.gray300} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.lectureTitle} numberOfLines={1}>{lecture.title}</Text>
+            {lecture.duration_minutes && (
+              <Text style={styles.lectureDuration}>{lecture.duration_minutes} min</Text>
+            )}
+          </View>
+          <Feather name="chevron-right" size={16} color={colors.gray300} />
+        </Pressable>
+      ))
+    ) : (
+      <Text style={styles.emptyLectures}>No lectures in this week yet.</Text>
+    )}
+  </View>
+)}
             </View>
           );
         })}
@@ -292,6 +302,10 @@ const styles = StyleSheet.create({
   lectureTitle: { fontSize: typography.fontSizeSm, color: colors.gray900 },
   lectureDuration: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 1 },
   emptyLectures: { fontSize: typography.fontSizeSm, color: colors.gray400, paddingVertical: spacing.space3 },
+  lockedBox: { alignItems: 'center', gap: spacing.space2, paddingVertical: spacing.space5, paddingHorizontal: spacing.space4 },
+lockedText: { fontSize: typography.fontSizeSm, color: colors.gray500, textAlign: 'center' },
+lockedEnrollBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.space5, paddingVertical: spacing.space2, borderRadius: spacing.radiusFull, marginTop: spacing.space2 },
+lockedEnrollBtnText: { color: colors.white, fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold },
 });
 
 export default CourseDetailsScreen;

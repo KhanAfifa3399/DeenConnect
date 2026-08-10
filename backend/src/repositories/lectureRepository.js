@@ -70,4 +70,15 @@ async function getMissingVideoLecturesForTeacher(teacherId) {
     return result.rows;
 }
 
-module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, updateLecture, deactivateLecture, getMissingVideoLecturesForTeacher };
+async function isStudentEnrolledInWeek(weekId, studentId) {
+    const result = await pool.query(
+        `SELECT e.id
+         FROM weeks w
+         JOIN courses c ON w.course_id = c.id
+         JOIN enrollments e ON e.course_id = c.id AND e.student_id = $2
+         WHERE w.id = $1`,
+        [weekId, studentId]
+    );
+    return result.rows.length > 0;
+}
+module.exports = { getLecturesByWeek, getLectureById, isValidWeek, createLecture, updateLecture, deactivateLecture, getMissingVideoLecturesForTeacher, isStudentEnrolledInWeek };

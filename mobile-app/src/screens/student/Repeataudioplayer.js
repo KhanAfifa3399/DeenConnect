@@ -208,4 +208,4 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 11, color: colors.error },
 });
 
-export default RepeatAudioPlayer;
+export default RepeatAudioPlayer;							

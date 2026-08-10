@@ -13,6 +13,8 @@ import NotificationsScreen from '../screens/student/NotificationsScreen';
 import TeacherCourseDetailsScreen from '../screens/teacher/TeacherCourseDetailsScreen';
 import CreateAnnouncementScreen from '../screens/teacher/CreateAnnouncementScreen';
 import MyAnnouncementsScreen from '../screens/teacher/MyAnnouncementsScreen';
+import SurahReaderScreen from '../screens/student/SurahReaderScreen';
+import MiniPlayer from '../components/MiniPlayer';
 // ...
 // ...
 // ...
@@ -37,10 +39,12 @@ function RootNavigator() {
         <Stack.Screen name="TeacherCourseDetails" component={TeacherCourseDetailsScreen} />
         <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} />
 <Stack.Screen name="MyAnnouncements" component={MyAnnouncementsScreen} />
+        <Stack.Screen name="SurahReader" component={SurahReaderScreen} />
 
 
 
       </Stack.Navigator>
+      <MiniPlayer />
     </NavigationContainer>
   );
 }

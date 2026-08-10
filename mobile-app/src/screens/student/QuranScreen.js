@@ -18,19 +18,14 @@ const TABS = [
   { key: 'daily', label: 'Daily Surah' },
 ];
 
-// Public Quran audio CDN (mp3quran.net) — Mishary Rashid Alafasy reciter.
-// Free, no API key, indexed by 3-digit surah number. Only works per full
-// Surah (a Juz/Para spans multiple surahs so it has no single audio file).
-const RECITER_FOLDER = 'afs';
-function getSurahAudioUrl(surahNumber) {
-  if (!surahNumber) return null;
-  return `https://server8.mp3quran.net/${RECITER_FOLDER}/${String(surahNumber).padStart(3, '0')}.mp3`;
-}
-
-function QuranScreen() {
+function QuranScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('surah');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  function openSurahReader(surahNumber, surahName) {
+    navigation.navigate('SurahReader', { surahNumber, surahName });
+  }
 
   useEffect(() => {
     loadTabData(activeTab);
@@ -66,7 +61,13 @@ function QuranScreen() {
         <View style={styles.contentCard}>
           <Pressable
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => item.pdf_url && openPdf(item.pdf_url)}
+            onPress={() => {
+              if (activeTab === 'surah') {
+                openSurahReader(item.number, item.name);
+              } else if (item.pdf_url) {
+                openPdf(item.pdf_url);
+              }
+            }}
           >
             <View style={styles.rowIcon}>
               <Feather name="file-text" size={18} color={colors.primaryDark} />
@@ -74,23 +75,23 @@ function QuranScreen() {
             <View style={styles.rowBody}>
               <Text style={styles.rowTitle}>{activeTab === 'surah' ? 'Surah' : 'Para'} {item.number} — {item.name}</Text>
             </View>
-            {item.pdf_url ? (
+            {activeTab === 'surah' ? (
+              <Feather name="chevron-right" size={18} color={colors.gray300} />
+            ) : item.pdf_url ? (
               <Feather name="download" size={16} color={colors.primary} />
             ) : (
               <Text style={styles.noPdfText}>No PDF</Text>
             )}
           </Pressable>
 
-          {activeTab === 'surah' ? (
-            <RepeatAudioPlayer audioUri={getSurahAudioUrl(item.number)} />
-          ) : (
-            <View style={styles.unavailableBox}>
-              <Feather name="info" size={12} color={colors.gray400} />
-              <Text style={styles.unavailableNote}>
-                Audio isn't available per-Para since a Para spans multiple Surahs.
-              </Text>
-            </View>
-          )}
+
+          <View style={styles.unavailableBox}>
+            <Feather name="info" size={12} color={colors.gray400} />
+            <Text style={styles.unavailableNote}>
+              Audio isn't available per-Para since a Para spans multiple Surahs.
+            </Text>
+          </View>
+
         </View>
       );
     }
@@ -117,16 +118,20 @@ function QuranScreen() {
 
     return (
       <View style={styles.contentCard}>
-        <View style={styles.row}>
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+          onPress={() => openSurahReader(item.surah_number, item.surah_name)}
+        >
           <View style={styles.rowIcon}>
             <Feather name="moon" size={18} color={colors.primaryDark} />
           </View>
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>Surah {item.surah_number} — {item.surah_name}</Text>
             {item.note && <Text style={styles.rowNote}>{item.note}</Text>}
+            <Text style={styles.rowNote}>Tap to read Arabic text & listen (ayah-by-ayah repeat)</Text>
           </View>
-        </View>
-        <RepeatAudioPlayer audioUri={getSurahAudioUrl(item.surah_number)} />
+          <Feather name="chevron-right" size={18} color={colors.gray300} />
+        </Pressable>
       </View>
     );
   }
