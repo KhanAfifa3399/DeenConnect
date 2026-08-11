@@ -1,45 +1,65 @@
+/* DashboardLayout.module.css */
+
+/* Overall Page Layout with outer padding */
 .layout {
   display: flex;
   height: 100vh;
+  width: 100vw;
   overflow: hidden;
   background-color: var(--bg-secondary);
+  padding: 8px;
+  gap: 16px;
+  box-sizing: border-box;
 }
 
-/* Sidebar */
+/* Sidebar as a floating rounded card */
 .sidebar {
   width: 260px;
   flex-shrink: 0;
-  height: 100vh;
+  height: 100%;
   background-color: var(--color-primary-dark);
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  box-sizing: border-box;
+  
+  /* Hides sidebar scrollbar across browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .logoArea {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-6) var(--space-5);
+  padding: 16px 20px; /* Clean internal padding */
+  height: 64px;       /* Fixed standard height */
+  box-sizing: border-box;
+  flex-shrink: 0;     /* Prevents section from collapsing */
+  overflow: hidden;   /* Keeps oversized images contained */
+  
 }
 
-.logoBadge {
+.logoImage {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
-  background-color: var(--color-accent-light);
-  color: var(--color-primary-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
+  object-fit: contain; /* Keeps image aspect ratio intact */
+  flex-shrink: 0;
+  border-radius: var(--radius-md); /* Optional: matches design layout */
 }
 
 .logoText {
   color: var(--color-white);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav {
@@ -144,12 +164,17 @@
   flex-shrink: 0;
 }
 
-/* Main area */
+/* Main Content Area framed as a large rounded panel */
 .mainArea {
   flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-card);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .topbar {
@@ -168,19 +193,6 @@
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
-}
-
-.searchInput {
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  width: 240px;
-  outline: none;
-}
-
-.searchInput:focus {
-  border-color: var(--color-primary);
 }
 
 .content {
@@ -320,17 +332,6 @@
   color: var(--color-primary);
 }
 
-.notifDot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 7px;
-  height: 7px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-error);
-  border: 1.5px solid var(--bg-primary);
-}
-
 /* User menu */
 .userMenuWrapper {
   position: relative;
@@ -419,6 +420,7 @@
   color: var(--color-error);
   border-top: 1px solid var(--color-gray-100);
 } 
+
 .notifWrapper {
   position: relative;
 }
@@ -487,17 +489,6 @@
 .notifList {
   max-height: 320px;
   overflow-y: auto;
-}
-
-.notifItem {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-100);
-}
-
-.notifItem:last-child {
-  border-bottom: none;
 }
 
 .notifIcon {

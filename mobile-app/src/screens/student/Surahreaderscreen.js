@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, TextInput,
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -16,13 +22,10 @@ const MODES = [
   { key: 'full', label: 'Full Surah' },
 ];
 
-// Per-ayah recitation + Arabic text (Alafasy). Each ayah in the response
-// carries its own "audio" URL, which is what makes ayah-wise repeat possible.
 function getSurahDataUrl(surahNumber) {
   return `https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`;
 }
 
-// Full continuous Surah recitation (single file), used for "Full Surah" mode.
 function getFullSurahAudioUrl(surahNumber) {
   return `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`;
 }
@@ -33,16 +36,25 @@ function formatTime(ms) {
   return `${Math.floor(totalSec / 60)}:${String(totalSec % 60).padStart(2, '0')}`;
 }
 
-function SurahReaderScreen({ route, navigation }) {
-  const { surahNumber, surahName } = route.params || {};
+export default function SurahReaderScreen({ route, navigation }) {
+  const { surahNumber = 1, surahName = 'Al-Fatiha' } = route.params || {};
 
   const [ayahs, setAyahs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mode, setMode] = useState('ayah');
 
-  // ---- Full Surah (single continuous file) — via the global mini-player ----
-  const { currentTrack, isPlaying: fullIsPlaying, isLoading: fullLoading, position, duration, playTrack, togglePlayPause } = useAudioPlayer();
+  // Full Surah player context
+  const {
+    currentTrack,
+    isPlaying: fullIsPlaying,
+    isLoading: fullLoading,
+    position,
+    duration,
+    playTrack,
+    togglePlayPause,
+  } = useAudioPlayer();
+
   const fullTrackId = `surah-${surahNumber}`;
   const isFullThisPlaying = currentTrack?.id === fullTrackId;
   const fullProgress = isFullThisPlaying && duration > 0 ? position / duration : 0;
@@ -51,11 +63,15 @@ function SurahReaderScreen({ route, navigation }) {
     if (isFullThisPlaying) {
       togglePlayPause();
     } else {
-      playTrack({ id: fullTrackId, title: `Surah ${surahName}`, uri: getFullSurahAudioUrl(surahNumber) });
+      playTrack({
+        id: fullTrackId,
+        title: `Surah ${surahName}`,
+        uri: getFullSurahAudioUrl(surahNumber),
+      });
     }
   }
 
-  // ---- Ayah by Ayah repeat player (own local Audio.Sound instance) ----
+  // Ayah repeat player state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [repeatTarget, setRepeatTarget] = useState(3);
   const [customValue, setCustomValue] = useState('');
@@ -84,11 +100,10 @@ function SurahReaderScreen({ route, navigation }) {
     fetch(getSurahDataUrl(surahNumber))
       .then((res) => res.json())
       .then((json) => setAyahs(json.data?.ayahs || []))
-      .catch(() => setError('Could not load the Surah text. Check your connection.'))
+      .catch(() => setError('Could not load Surah text. Check internet connection.'))
       .finally(() => setLoading(false));
   }, [surahNumber]);
 
-  // Stop ayah-mode audio when leaving the screen entirely.
   useEffect(() => {
     return () => {
       stoppedRef.current = true;
@@ -98,14 +113,12 @@ function SurahReaderScreen({ route, navigation }) {
     };
   }, []);
 
-  // Keep only one thing playing at a time between the two modes.
   useEffect(() => {
     if (mode === 'ayah' && isFullThisPlaying) {
       togglePlayPause();
     } else if (mode === 'full' && ayahIsPlaying) {
       pauseAyah();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   function scrollToIndex(index) {
@@ -145,12 +158,12 @@ function SurahReaderScreen({ route, navigation }) {
     setSurahComplete(false);
 
     if (soundRef.current) {
-      try { await soundRef.current.unloadAsync(); } catch (err) { /* ignore */ }
+      try { await soundRef.current.unloadAsync(); } catch (err) {}
       soundRef.current = null;
     }
 
     if (!ayah.audio) {
-      setAyahAudioError('Audio not available for this ayah.');
+      setAyahAudioError('Audio not available.');
       setAyahIsPlaying(false);
       return;
     }
@@ -169,8 +182,7 @@ function SurahReaderScreen({ route, navigation }) {
       soundRef.current = sound;
       setAyahIsPlaying(autoplay);
     } catch (err) {
-      console.error('Failed to play ayah audio:', err);
-      setAyahAudioError('Could not play this ayah audio.');
+      setAyahAudioError('Could not play audio.');
       setAyahIsPlaying(false);
     } finally {
       setAyahLoading(false);
@@ -180,7 +192,7 @@ function SurahReaderScreen({ route, navigation }) {
   async function pauseAyah() {
     setAyahIsPlaying(false);
     if (soundRef.current) {
-      try { await soundRef.current.pauseAsync(); } catch (err) { /* ignore */ }
+      try { await soundRef.current.pauseAsync(); } catch (err) {}
     }
   }
 
@@ -193,7 +205,7 @@ function SurahReaderScreen({ route, navigation }) {
       try {
         await soundRef.current.playAsync();
         setAyahIsPlaying(true);
-      } catch (err) { /* ignore */ }
+      } catch (err) {}
     } else {
       await loadAndPlayAyah(currentIndex, true);
     }
@@ -204,7 +216,7 @@ function SurahReaderScreen({ route, navigation }) {
     const wasPlaying = ayahIsPlaying;
     stoppedRef.current = true;
     if (soundRef.current) {
-      try { await soundRef.current.unloadAsync(); } catch (err) { /* ignore */ }
+      try { await soundRef.current.unloadAsync(); } catch (err) {}
       soundRef.current = null;
     }
     setCurrentIndex(index);
@@ -218,14 +230,6 @@ function SurahReaderScreen({ route, navigation }) {
     } else {
       setAyahIsPlaying(false);
     }
-  }
-
-  function goNext() {
-    goToAyah(currentIndex + 1);
-  }
-
-  function goPrev() {
-    goToAyah(currentIndex - 1);
   }
 
   function selectRepeat(n) {
@@ -252,161 +256,78 @@ function SurahReaderScreen({ route, navigation }) {
     }
   }
 
-  const renderAyah = useCallback(({ item, index }) => {
-    const isActive = mode === 'ayah' && index === currentIndex;
-    const Row = mode === 'ayah' ? Pressable : View;
-    return (
-      <Row
-        style={[styles.ayahRow, isActive && styles.ayahRowActive]}
-        onPress={mode === 'ayah' ? () => goToAyah(index) : undefined}
-      >
-        <View style={[styles.ayahNumberBadge, isActive && styles.ayahNumberBadgeActive]}>
-          <Text style={[styles.ayahNumberText, isActive && styles.ayahNumberTextActive]}>
-            {item.numberInSurah}
-          </Text>
-        </View>
-        <Text style={styles.ayahArabic}>{item.text}</Text>
-        {isActive && (
-          <View style={styles.activeIndicator}>
-            {ayahLoading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <Feather name={ayahIsPlaying ? 'volume-2' : 'pause-circle'} size={16} color={colors.primary} />
+  const renderAyah = useCallback(
+    ({ item, index }) => {
+      const isActive = mode === 'ayah' && index === currentIndex;
+      const Row = mode === 'ayah' ? Pressable : View;
+      return (
+        <Row
+          style={[styles.ayahCard, isActive && styles.ayahCardActive]}
+          onPress={mode === 'ayah' ? () => goToAyah(index) : undefined}
+        >
+          <View style={styles.ayahHeader}>
+            <View style={[styles.badge, isActive && styles.badgeActive]}>
+              <Text style={[styles.badgeText, isActive && styles.badgeTextActive]}>
+                {item.numberInSurah}
+              </Text>
+            </View>
+            {isActive && (
+              <View style={styles.playingTag}>
+                <Feather
+                  name={ayahIsPlaying ? 'activity' : 'pause'}
+                  size={12}
+                  color={colors.primary || '#0D9488'}
+                />
+                <Text style={styles.playingTagText}>
+                  {ayahIsPlaying ? 'Playing' : 'Paused'}
+                </Text>
+              </View>
             )}
           </View>
-        )}
-      </Row>
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, currentIndex, ayahIsPlaying, ayahLoading]);
+          <Text style={styles.ayahArabic}>{item.text}</Text>
+        </Row>
+      );
+    },
+    [mode, currentIndex, ayahIsPlaying]
+  );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={20} color={colors.gray700} />
+          <Feather name="chevron-left" size={24} color={colors.gray700 || '#374151'} />
         </Pressable>
-        <View style={{ flex: 1 }}>
+        <View style={styles.headerTitleContainer}>
           <Text style={styles.surahTitle}>Surah {surahName}</Text>
-          <Text style={styles.surahSubtitle}>No. {surahNumber}{ayahs.length ? ` · ${ayahs.length} Ayahs` : ''}</Text>
+          <Text style={styles.surahSubtitle}>
+            Surah {surahNumber} {ayahs.length ? `• ${ayahs.length} Ayahs` : ''}
+          </Text>
         </View>
+        <Feather name="bar-chart-2" size={20} color={colors.primary || '#0D9488'} />
       </View>
 
-      <View style={styles.modeRow}>
+      {/* Mode Switcher */}
+      <View style={styles.modeContainer}>
         {MODES.map((m) => (
           <Pressable
             key={m.key}
-            style={[styles.modeButton, mode === m.key && styles.modeButtonActive]}
+            style={[styles.modeTab, mode === m.key && styles.modeTabActive]}
             onPress={() => setMode(m.key)}
           >
-            <Text style={[styles.modeButtonText, mode === m.key && styles.modeButtonTextActive]}>
+            <Text style={[styles.modeText, mode === m.key && styles.modeTextActive]}>
               {m.label}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      {mode === 'full' ? (
-        <View style={styles.playerBar}>
-          <Pressable style={styles.playBtn} onPress={handleFullPlayPause}>
-            {isFullThisPlaying && fullLoading ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Feather name={isFullThisPlaying && fullIsPlaying ? 'pause' : 'play'} size={18} color={colors.white} />
-            )}
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <View style={styles.playerTrack}>
-              <View style={[styles.playerFill, { width: `${(isFullThisPlaying ? fullProgress : 0) * 100}%` }]} />
-            </View>
-            <Text style={styles.playerTime}>
-              {isFullThisPlaying ? `${formatTime(position)} / ${formatTime(duration)}` : 'Tap play to listen while you read'}
-            </Text>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.ayahControls}>
-          <View style={styles.navRow}>
-            <Pressable
-              style={[styles.navBtn, currentIndex === 0 && styles.navBtnDisabled]}
-              onPress={goPrev}
-              disabled={currentIndex === 0}
-            >
-              <Feather name="skip-back" size={18} color={currentIndex === 0 ? colors.gray300 : colors.primaryDark} />
-            </Pressable>
-
-            <Pressable style={styles.ayahPlayBtn} onPress={handleAyahPlayPause} disabled={ayahLoading}>
-              {ayahLoading ? (
-                <ActivityIndicator size="small" color={colors.white} />
-              ) : (
-                <Feather name={ayahIsPlaying ? 'pause' : 'play'} size={20} color={colors.white} />
-              )}
-            </Pressable>
-
-            <Pressable
-              style={[styles.navBtn, currentIndex >= ayahs.length - 1 && styles.navBtnDisabled]}
-              onPress={goNext}
-              disabled={currentIndex >= ayahs.length - 1}
-            >
-              <Feather name="skip-forward" size={18} color={currentIndex >= ayahs.length - 1 ? colors.gray300 : colors.primaryDark} />
-            </Pressable>
-          </View>
-
-          <View style={styles.statusRow}>
-            <Text style={styles.statusText}>
-              Ayah {ayahs[currentIndex]?.numberInSurah ?? currentIndex + 1} of {ayahs.length}
-            </Text>
-            {ayahIsPlaying && repeatTarget > 1 && (
-              <Text style={styles.statusText}>Repeat {repeatsDone + 1} / {repeatTarget}</Text>
-            )}
-            {surahComplete && (
-              <View style={styles.completeBadge}>
-                <Feather name="check" size={11} color={colors.success} />
-                <Text style={styles.completeBadgeText}>Surah Complete</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.repeatRow}>
-            <Text style={styles.repeatLabel}>Repeat each ayah:</Text>
-            {REPEAT_OPTIONS.map((n) => (
-              <Pressable
-                key={n}
-                style={[styles.repeatChip, !isCustom && repeatTarget === n && styles.repeatChipActive]}
-                onPress={() => selectRepeat(n)}
-              >
-                <Text style={[styles.repeatChipText, !isCustom && repeatTarget === n && styles.repeatChipTextActive]}>
-                  {n}
-                </Text>
-              </Pressable>
-            ))}
-            <Pressable
-              style={[styles.repeatChip, isCustom && styles.repeatChipActive]}
-              onPress={selectCustom}
-            >
-              <Text style={[styles.repeatChipText, isCustom && styles.repeatChipTextActive]}>Custom</Text>
-            </Pressable>
-            {isCustom && (
-              <TextInput
-                style={styles.customInput}
-                value={customValue}
-                onChangeText={onCustomChange}
-                placeholder="#"
-                keyboardType="number-pad"
-                placeholderTextColor={colors.gray400}
-              />
-            )}
-          </View>
-
-          {ayahAudioError ? <Text style={styles.errorText}>{ayahAudioError}</Text> : null}
-        </View>
-      )}
-
+      {/* Ayahs List */}
       {loading ? (
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: spacing.space10 }} />
+        <ActivityIndicator size="large" color={colors.primary || '#0D9488'} style={{ marginTop: 40 }} />
       ) : error ? (
         <View style={styles.errorBox}>
-          <Feather name="wifi-off" size={22} color={colors.gray300} />
+          <Feather name="wifi-off" size={24} color={colors.gray400 || '#9CA3AF'} />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : (
@@ -415,84 +336,466 @@ function SurahReaderScreen({ route, navigation }) {
           data={ayahs}
           keyExtractor={(item) => String(item.number)}
           renderItem={renderAyah}
-          style={styles.ayahList}
-          contentContainerStyle={styles.ayahContent}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
-            listRef.current?.scrollToOffset({ offset: (averageItemLength || 100) * index, animated: true });
-            setTimeout(() => listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.25 }), 150);
+            listRef.current?.scrollToOffset({
+              offset: (averageItemLength || 100) * index,
+              animated: true,
+            });
+            setTimeout(
+              () =>
+                listRef.current?.scrollToIndex({
+                  index,
+                  animated: true,
+                  viewPosition: 0.25,
+                }),
+              150
+            );
           }}
         />
       )}
+
+      {/* Light Dynamic Floating Control Player Card */}
+      <View style={styles.bottomCardContainer}>
+        {mode === 'full' ? (
+          <View style={styles.playerCard}>
+            <Pressable style={styles.mainPlayBtn} onPress={handleFullPlayPause}>
+              {isFullThisPlaying && fullLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Feather
+                  name={isFullThisPlaying && fullIsPlaying ? 'pause' : 'play'}
+                  size={20}
+                  color="#FFFFFF"
+                />
+              )}
+            </Pressable>
+
+            <View style={styles.playerDetails}>
+              <View style={styles.playerTitleRow}>
+                <Text style={styles.playerTitle}>Surah {surahName}</Text>
+                <Text style={styles.playerTimeText}>
+                  {isFullThisPlaying
+                    ? `${formatTime(position)} / ${formatTime(duration)}`
+                    : 'Full Recitation'}
+                </Text>
+              </View>
+              <View style={styles.trackBackground}>
+                <View
+                  style={[
+                    styles.trackFill,
+                    { width: `${(isFullThisPlaying ? fullProgress : 0) * 100}%` },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.playerCardVertical}>
+            {/* Control Bar Top */}
+            <View style={styles.playerMainRow}>
+              <Pressable
+                style={[styles.smallNavBtn, currentIndex === 0 && styles.btnDisabled]}
+                onPress={() => goToAyah(currentIndex - 1)}
+                disabled={currentIndex === 0}
+              >
+                <Feather name="skip-back" size={18} color={colors.gray600 || '#4B5563'} />
+              </Pressable>
+
+              <Pressable
+                style={styles.mainPlayBtn}
+                onPress={handleAyahPlayPause}
+                disabled={ayahLoading}
+              >
+                {ayahLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Feather
+                    name={ayahIsPlaying ? 'pause' : 'play'}
+                    size={22}
+                    color="#FFFFFF"
+                  />
+                )}
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.smallNavBtn,
+                  currentIndex >= ayahs.length - 1 && styles.btnDisabled,
+                ]}
+                onPress={() => goToAyah(currentIndex + 1)}
+                disabled={currentIndex >= ayahs.length - 1}
+              >
+                <Feather name="skip-forward" size={18} color={colors.gray600 || '#4B5563'} />
+              </Pressable>
+
+              <View style={styles.statusInfo}>
+                <Text style={styles.statusPrimaryText}>
+                  Ayah {ayahs[currentIndex]?.numberInSurah ?? currentIndex + 1} / {ayahs.length}
+                </Text>
+                {ayahIsPlaying && repeatTarget > 1 && (
+                  <Text style={styles.statusSecondaryText}>
+                    Repeat {repeatsDone + 1} of {repeatTarget}
+                  </Text>
+                )}
+              </View>
+
+              {surahComplete && (
+                <View style={styles.completedBadge}>
+                  <Feather name="check" size={12} color={colors.primary || '#0D9488'} />
+                </View>
+              )}
+            </View>
+
+            {/* Repeat Selectors Row */}
+            <View style={styles.repeatControlsRow}>
+              {REPEAT_OPTIONS.map((n) => (
+                <Pressable
+                  key={n}
+                  style={[
+                    styles.repeatOption,
+                    !isCustom && repeatTarget === n && styles.repeatOptionActive,
+                  ]}
+                  onPress={() => selectRepeat(n)}
+                >
+                  <Text
+                    style={[
+                      styles.repeatOptionText,
+                      !isCustom && repeatTarget === n && styles.repeatOptionTextActive,
+                    ]}
+                  >
+                    {n}x
+                  </Text>
+                </Pressable>
+              ))}
+              <Pressable
+                style={[styles.repeatOption, isCustom && styles.repeatOptionActive]}
+                onPress={selectCustom}
+              >
+                <Text
+                  style={[
+                    styles.repeatOptionText,
+                    isCustom && styles.repeatOptionTextActive,
+                  ]}
+                >
+                  Custom
+                </Text>
+              </Pressable>
+              {isCustom && (
+                <TextInput
+                  style={styles.customInput}
+                  value={customValue}
+                  onChangeText={onCustomChange}
+                  placeholder="#"
+                  keyboardType="number-pad"
+                  placeholderTextColor={colors.gray400 || '#9CA3AF'}
+                />
+              )}
+            </View>
+            {ayahAudioError ? (
+              <Text style={styles.audioErrorText}>{ayahAudioError}</Text>
+            ) : null}
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   header: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.space3,
-    paddingHorizontal: spacing.space5, paddingTop: spacing.space3, paddingBottom: spacing.space2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  backBtn: { width: 36, height: 36, borderRadius: spacing.radiusFull, backgroundColor: colors.gray100, alignItems: 'center', justifyContent: 'center' },
-  surahTitle: { fontSize: typography.fontSizeLg, fontWeight: typography.weightBold, color: colors.primaryDark },
-  surahSubtitle: { fontSize: typography.fontSizeXs, color: colors.gray500, marginTop: 1 },
+  backBtn: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: colors.gray100 || '#F3F4F6',
+  },
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  surahTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primaryDark || '#0F172A',
+  },
+  surahSubtitle: {
+    fontSize: 12,
+    color: colors.gray500 || '#6B7280',
+    marginTop: 2,
+  },
 
-  modeRow: {
-    flexDirection: 'row', paddingHorizontal: spacing.space5, gap: spacing.space2, marginBottom: spacing.space3,
+  modeContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.gray100 || '#F3F4F6',
+    marginHorizontal: 20,
+    borderRadius: 25,
+    padding: 4,
+    marginVertical: 10,
   },
-  modeButton: {
-    paddingHorizontal: spacing.space3, paddingVertical: spacing.space2,
-    borderRadius: spacing.radiusFull, backgroundColor: colors.gray100,
+  modeTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignItems: 'center',
   },
-  modeButtonActive: { backgroundColor: colors.primary },
-  modeButtonText: { fontSize: typography.fontSizeXs, color: colors.gray600, fontWeight: typography.weightMedium },
-  modeButtonTextActive: { color: colors.white },
+  modeTabActive: {
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  modeText: {
+    fontSize: 13,
+    color: colors.gray600 || '#4B5563',
+    fontWeight: '600',
+  },
+  modeTextActive: {
+    color: colors.primary || '#0D9488',
+  },
 
-  playerBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, marginHorizontal: spacing.space5, marginBottom: spacing.space4, backgroundColor: colors.accentLight, borderRadius: spacing.radiusLg, padding: spacing.space3 },
-  playBtn: { width: 38, height: 38, borderRadius: spacing.radiusFull, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  playerTrack: { height: 4, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 2, overflow: 'hidden' },
-  playerFill: { height: '100%', backgroundColor: colors.primary },
-  playerTime: { fontSize: 11, color: colors.primaryDark, marginTop: 4 },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 160,
+  },
+  ayahCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+  },
+  ayahCardActive: {
+    borderColor: colors.primary || '#0D9488',
+    backgroundColor: colors.accentLight || '#F0FDFA',
+  },
+  ayahHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  badge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.gray100 || '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+  },
+  badgeActive: {
+    backgroundColor: colors.primary || '#0D9488',
+    borderColor: colors.primary || '#0D9488',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.gray700 || '#374151',
+  },
+  badgeTextActive: {
+    color: '#FFFFFF',
+  },
+  playingTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(13, 148, 136, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  playingTagText: {
+    fontSize: 11,
+    color: colors.primary || '#0D9488',
+    fontWeight: '600',
+  },
+  ayahArabic: {
+    fontFamily: 'Amiri_400Regular',
+    fontSize: 22,
+    lineHeight: 44,
+    color: colors.gray900 || '#111827',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
 
-  ayahControls: {
-    marginHorizontal: spacing.space5, marginBottom: spacing.space3, backgroundColor: colors.accentLight,
-    borderRadius: spacing.radiusLg, padding: spacing.space4, gap: spacing.space3,
+  bottomCardContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
-  navRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space5 },
-  navBtn: { width: 38, height: 38, borderRadius: spacing.radiusFull, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
-  navBtnDisabled: { opacity: 0.5 },
-  ayahPlayBtn: { width: 54, height: 54, borderRadius: spacing.radiusFull, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space3, flexWrap: 'wrap' },
-  statusText: { fontSize: typography.fontSizeXs, color: colors.primaryDark, fontWeight: typography.weightMedium },
-  completeBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(46,125,50,0.12)',
-    paddingHorizontal: spacing.space3, paddingVertical: 3, borderRadius: spacing.radiusFull,
+  playerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
-  completeBadgeText: { fontSize: 10, color: colors.success, fontWeight: typography.weightSemibold },
-  repeatRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  repeatLabel: { fontSize: 11, color: colors.gray600, marginRight: 2 },
-  repeatChip: { paddingHorizontal: spacing.space3, paddingVertical: 4, borderRadius: spacing.radiusFull, backgroundColor: colors.white },
-  repeatChipActive: { backgroundColor: colors.primary },
-  repeatChipText: { fontSize: 11, color: colors.gray700, fontWeight: typography.weightMedium },
-  repeatChipTextActive: { color: colors.white },
+  playerCardVertical: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
+  playerMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  mainPlayBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary || '#0D9488',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.gray100 || '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnDisabled: {
+    opacity: 0.4,
+  },
+  playerDetails: {
+    flex: 1,
+  },
+  playerTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  playerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primaryDark || '#0F172A',
+  },
+  playerTimeText: {
+    fontSize: 11,
+    color: colors.gray500 || '#6B7280',
+  },
+  trackBackground: {
+    height: 4,
+    backgroundColor: colors.gray200 || '#E5E7EB',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  trackFill: {
+    height: '100%',
+    backgroundColor: colors.primary || '#0D9488',
+  },
+
+  statusInfo: {
+    flex: 1,
+  },
+  statusPrimaryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primaryDark || '#0F172A',
+  },
+  statusSecondaryText: {
+    fontSize: 11,
+    color: colors.primary || '#0D9488',
+    marginTop: 2,
+  },
+  completedBadge: {
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(13, 148, 136, 0.12)',
+  },
+
+  repeatControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray100 || '#F3F4F6',
+    paddingTop: 10,
+  },
+  repeatLabel: {
+    fontSize: 11,
+    color: colors.gray500 || '#6B7280',
+    marginRight: 2,
+  },
+  repeatOption: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: colors.gray100 || '#F3F4F6',
+  },
+  repeatOptionActive: {
+    backgroundColor: colors.primary || '#0D9488',
+  },
+  repeatOptionText: {
+    fontSize: 11,
+    color: colors.gray700 || '#374151',
+    fontWeight: '600',
+  },
+  repeatOptionTextActive: {
+    color: '#FFFFFF',
+  },
   customInput: {
-    width: 44, borderWidth: 1, borderColor: colors.gray200, borderRadius: spacing.radiusMd,
-    paddingHorizontal: spacing.space2, paddingVertical: 3, fontSize: 11, color: colors.gray900, backgroundColor: colors.white,
+    width: 38,
+    backgroundColor: colors.gray100 || '#F3F4F6',
+    borderRadius: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    fontSize: 11,
+    color: colors.gray900 || '#111827',
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
   },
 
-  errorBox: { alignItems: 'center', gap: spacing.space2, marginTop: spacing.space10 },
-  errorText: { color: colors.gray500, fontSize: typography.fontSizeSm, textAlign: 'center', paddingHorizontal: spacing.space6 },
-  ayahList: { flex: 1 },
-  ayahContent: { paddingHorizontal: spacing.space5, paddingBottom: spacing.space10 },
-  ayahRow: { flexDirection: 'row-reverse', alignItems: 'flex-start', gap: spacing.space3, paddingVertical: spacing.space4, borderBottomWidth: 1, borderBottomColor: colors.gray100 },
-  ayahRowActive: { backgroundColor: colors.gray50, borderRadius: spacing.radiusMd, borderBottomWidth: 0, paddingHorizontal: spacing.space2 },
-  ayahNumberBadge: { width: 26, height: 26, borderRadius: spacing.radiusFull, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  ayahNumberBadgeActive: { backgroundColor: colors.primary },
-  ayahNumberText: { fontSize: 11, color: colors.primary, fontWeight: typography.weightBold },
-  ayahNumberTextActive: { color: colors.white },
-  ayahArabic: { flex: 1, fontFamily: 'Amiri_400Regular', fontSize: 24, lineHeight: 46, color: colors.gray900, textAlign: 'right', writingDirection: 'rtl' },
-  activeIndicator: { marginTop: 6 },
+  errorBox: {
+    alignItems: 'center',
+    marginTop: 60,
+    gap: 8,
+  },
+  errorText: {
+    color: colors.gray500 || '#6B7280',
+    fontSize: 14,
+  },
+  audioErrorText: {
+    color: '#EF4444',
+    fontSize: 11,
+    textAlign: 'center',
+  },
 });
-
-export default SurahReaderScreen;

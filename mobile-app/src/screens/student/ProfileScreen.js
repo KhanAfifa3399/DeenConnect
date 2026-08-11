@@ -1,5 +1,14 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,7 +20,7 @@ import { getUser, clearAuth, setUser as saveUser } from '../../utils/secureStora
 import { getFileUrl } from '../../utils/urls';
 import { uploadProfilePhoto } from '../../api/usersApi';
 
-function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -24,7 +33,10 @@ function ProfileScreen({ navigation }) {
   async function handlePickPhoto() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission Needed', 'Please allow photo library access to change your profile picture.');
+      Alert.alert(
+        'Permission Needed',
+        'Please allow photo library access to change your profile picture.'
+      );
       return;
     }
 
@@ -68,113 +80,291 @@ function ProfileScreen({ navigation }) {
         style: 'destructive',
         onPress: async () => {
           await clearAuth();
-navigation.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });        },
+          navigation.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
+        },
       },
     ]);
   }
 
-const menuItems = [
+  const accountSettings = [
     { icon: 'user', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: 'lock', label: 'Change Password', screen: 'ChangePassword' },
+  ];
+
+  const appSettings = [
     { icon: 'help-circle', label: 'Help & Support', screen: null },
-];
+    { icon: 'shield', label: 'Privacy Policy', screen: null },
+  ];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.header}>Profile</Text>
+      {/* Top Bar Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <Feather name="settings" size={20} color={colors.primary || '#0D9488'} />
+      </View>
 
-      <View style={styles.profileCard}>
-        <Pressable onPress={handlePickPhoto} style={styles.avatarWrapper}>
-          {user?.profile_picture ? (
-            <Image source={{ uri: getFileUrl(user.profile_picture) }} style={styles.avatarImg} />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarText}>{user?.full_name?.charAt(0) || 'S'}</Text>
-            </View>
-          )}
-          <View style={styles.cameraBadge}>
-            {uploadingPhoto ? (
-              <ActivityIndicator size="small" color={colors.white} />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* User Identity Banner Card */}
+        <View style={styles.profileCard}>
+          <Pressable onPress={handlePickPhoto} style={styles.avatarWrapper}>
+            {user?.profile_picture ? (
+              <Image
+                source={{ uri: getFileUrl(user.profile_picture) }}
+                style={styles.avatarImg}
+              />
             ) : (
-              <Feather name="camera" size={13} color={colors.white} />
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarText}>
+                  {user?.full_name?.charAt(0) || 'S'}
+                </Text>
+              </View>
             )}
-          </View>
-        </Pressable>
-
-        <Text style={styles.name}>{user?.full_name}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleBadgeText}>{user?.role}</Text>
-        </View>
-      </View>
-
-      <View style={styles.menuCard}>
-        {menuItems.map((item, index) => (
-          <Pressable
-            key={item.label}
-            style={[styles.menuRow, index < menuItems.length - 1 && styles.menuRowBorder]}
-            onPress={() => item.screen && navigation.navigate(item.screen)}
-          >
-            <View style={styles.menuIconWrap}>
-              <Feather name={item.icon} size={17} color={colors.primaryDark} />
+            <View style={styles.cameraBadge}>
+              {uploadingPhoto ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Feather name="camera" size={13} color="#FFFFFF" />
+              )}
             </View>
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Feather name="chevron-right" size={16} color={colors.gray300} />
           </Pressable>
-        ))}
-      </View>
 
-      <Pressable style={styles.logoutButton} onPress={handleLogout}>
-        <Feather name="log-out" size={17} color={colors.error} />
-        <Text style={styles.logoutText}>Log Out</Text>
-      </Pressable>
+          <Text style={styles.userName}>{user?.full_name || 'User'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'email@example.com'}</Text>
+
+          {user?.role ? (
+            <View style={styles.roleBadge}>
+              <Feather name="award" size={12} color={colors.primary || '#0D9488'} />
+              <Text style={styles.roleBadgeText}>{user.role}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Account Section */}
+        <Text style={styles.sectionHeaderTitle}>ACCOUNT SETTINGS</Text>
+        <View style={styles.menuCard}>
+          {accountSettings.map((item, index) => (
+            <Pressable
+              key={item.label}
+              style={({ pressed }) => [
+                styles.menuRow,
+                index < accountSettings.length - 1 && styles.menuRowBorder,
+                pressed && styles.rowPressed,
+              ]}
+              onPress={() => item.screen && navigation.navigate(item.screen)}
+            >
+              <View style={styles.menuIconWrap}>
+                <Feather name={item.icon} size={18} color={colors.primary || '#0D9488'} />
+              </View>
+              <Text style={styles.menuLabel}>{item.label}</Text>
+              <Feather name="chevron-right" size={18} color={colors.gray400 || '#9CA3AF'} />
+            </Pressable>
+          ))}
+        </View>
+
+        {/* General Support Section */}
+        <Text style={styles.sectionHeaderTitle}>SUPPORT & INFORMATION</Text>
+        <View style={styles.menuCard}>
+          {appSettings.map((item, index) => (
+            <Pressable
+              key={item.label}
+              style={({ pressed }) => [
+                styles.menuRow,
+                index < appSettings.length - 1 && styles.menuRowBorder,
+                pressed && styles.rowPressed,
+              ]}
+              onPress={() => item.screen && navigation.navigate(item.screen)}
+            >
+              <View style={styles.menuIconWrap}>
+                <Feather name={item.icon} size={18} color={colors.primary || '#0D9488'} />
+              </View>
+              <Text style={styles.menuLabel}>{item.label}</Text>
+              <Feather name="chevron-right" size={18} color={colors.gray400 || '#9CA3AF'} />
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Action Button */}
+        <Pressable
+          style={({ pressed }) => [styles.logoutButton, pressed && styles.rowPressed]}
+          onPress={handleLogout}
+        >
+          <Feather name="log-out" size={18} color="#EF4444" />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.gray50 },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   header: {
-    fontSize: typography.fontSizeXl, fontWeight: typography.weightBold, color: colors.primaryDark,
-    paddingHorizontal: spacing.space5, paddingTop: spacing.space4, paddingBottom: spacing.space3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  profileCard: {
-    alignItems: 'center', backgroundColor: colors.white, borderRadius: spacing.radiusLg,
-    marginHorizontal: spacing.space5, padding: spacing.space6, marginBottom: spacing.space5,
+  headerTitle: {
+    fontSize: typography.fontSizeXl || 22,
+    fontWeight: '700',
+    color: colors.primaryDark || '#0F172A',
   },
-  avatarWrapper: { position: 'relative', marginBottom: spacing.space3 },
-  avatarImg: { width: 80, height: 80, borderRadius: spacing.radiusFull },
-  avatarFallback: {
-    width: 80, height: 80, borderRadius: spacing.radiusFull, backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    paddingTop: 8,
   },
-  avatarText: { color: colors.white, fontSize: 32, fontWeight: typography.weightBold },
-  cameraBadge: {
-    position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: spacing.radiusFull,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.white,
-  },
-  name: { fontSize: typography.fontSizeLg, fontWeight: typography.weightBold, color: colors.gray900 },
-  email: { fontSize: typography.fontSizeSm, color: colors.gray500, marginTop: 2, marginBottom: spacing.space3 },
-  roleBadge: { backgroundColor: colors.accentLight, paddingHorizontal: spacing.space3, paddingVertical: 3, borderRadius: spacing.radiusFull },
-  roleBadgeText: { fontSize: typography.fontSizeXs, color: colors.primaryDark, fontWeight: typography.weightMedium, textTransform: 'capitalize' },
-  menuCard: {
-    backgroundColor: colors.white, borderRadius: spacing.radiusLg,
-    marginHorizontal: spacing.space5, marginBottom: spacing.space5, overflow: 'hidden',
-  },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.space3, padding: spacing.space4 },
-  menuRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.gray100 },
-  menuIconWrap: {
-    width: 34, height: 34, borderRadius: spacing.radiusMd, backgroundColor: colors.gray50,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  menuLabel: { flex: 1, fontSize: typography.fontSizeSm, color: colors.gray900 },
-  logoutButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.space2,
-    marginHorizontal: spacing.space5, backgroundColor: colors.white, borderRadius: spacing.radiusLg,
-    padding: spacing.space4,
-  },
-  logoutText: { fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold, color: colors.error },
-});
 
-export default ProfileScreen;
+  /* Identity Card Styling */
+  profileCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  avatarImg: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarFallback: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.primary || '#0D9488',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 34,
+    fontWeight: '700',
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary || '#0D9488',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.gray900 || '#111827',
+  },
+  userEmail: {
+    fontSize: 13,
+    color: colors.gray500 || '#6B7280',
+    marginTop: 2,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.accentLight || '#F0FDFA',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginTop: 12,
+  },
+  roleBadgeText: {
+    fontSize: 11,
+    color: colors.primary || '#0D9488',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+
+  /* Group Headers & List Section Card */
+  sectionHeaderTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gray400 || '#9CA3AF',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  menuCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    overflow: 'hidden',
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  menuRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray100 || '#F3F4F6',
+  },
+  rowPressed: {
+    backgroundColor: colors.gray50 || '#F9FAFB',
+    opacity: 0.8,
+  },
+  menuIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accentLight || '#F0FDFA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.gray900 || '#111827',
+  },
+
+  /* Logout Button */
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    marginTop: 4,
+  },
+  logoutText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+});

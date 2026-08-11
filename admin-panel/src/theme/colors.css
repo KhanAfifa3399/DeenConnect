@@ -1,24 +1,24 @@
 :root {
-  /* Brand colors — Gold / Saffron palette */
-  --color-primary: #E1AD01;
-  --color-primary-light: #F0C42D;
-  --color-primary-dark: #C78C06;
+  /* Brand colors — Forest & Sage Green palette */
+  --color-primary: #0A400C;       /* Deep Forest Green */
+  --color-primary-light: #819067; /* Sage Green */
+  --color-primary-dark: #052407;  /* Ultra Dark Green */
 
-  --color-accent: #FFDB58;
-  --color-accent-light: #FFEA9D;
+  --color-accent: #B1AB86;        /* Muted Warm Sage / Olive */
+  --color-accent-light: #FEFAE0;  /* Cream / Soft Off-White */
 
   /* Neutrals */
   --color-white: #FFFFFF;
-  --color-gray-50: #FFFBF0;
-  --color-gray-100: #FFF6DC;
-  --color-gray-200: #FFEA9D;
-  --color-gray-300: #FFDB58;
-  --color-gray-400: #F0C42D;
-  --color-gray-500: #E1AD01;
-  --color-gray-600: #C78C06;
-  --color-gray-700: #9C6F05;
-  --color-gray-800: #6E4E03;
-  --color-gray-900: #4A3402;
+  --color-gray-50: #FEFAE0;       /* Warm Cream background */
+  --color-gray-100: #F3EFCB;
+  --color-gray-200: #E4DCAC;
+  --color-gray-300: #C9C298;
+  --color-gray-400: #B1AB86;
+  --color-gray-500: #819067;
+  --color-gray-600: #576541;
+  --color-gray-700: #344023;
+  --color-gray-800: #1B240E;
+  --color-gray-900: #0A400C;
 
   /* Semantic colors */
   --color-success: #2E7D32;
@@ -36,9 +36,9 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: var(--color-gray-900);
-  --bg-secondary: #3A2A02;
-  --bg-card: #3A2A02;
+  --bg-primary: #061A07;
+  --bg-secondary: #0A400C;
+  --bg-card: #0A400C;
   --text-primary: var(--color-gray-50);
   --text-secondary: var(--color-gray-300);
   --border-color: var(--color-gray-700);

@@ -1,152 +1,278 @@
-body{
-    margin: 0;
-    padding: 0;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base, system-ui, -apple-system, sans-serif);
+  background-color: var(--bg-card); /* White card base */
+
 }
 
+/* Outer Screen Wrapper */
 .page {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  position: relative;
-  background: url('/login-bg.jpg') center/cover no-repeat;;
-  object-position: cover;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--bg-secondary); /* Cream background #FEFAE0 */
 }
 
-.composition {
-  position: relative;
-  width: min(80vw, 780px);
-  height: min(72vh, 460px);
-}
-
-.photoCard {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 90%;
-  height: 100%;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
+/* Main Split Card Container */
+.container {
+  display: flex;
+  width: min(90vw, 880px);
+  min-height: min(80vh, 520px);
+  background-color: var(--bg-card); /* White card base */
+  border-radius: 24px;
   box-shadow: var(--shadow-xl);
+  padding: 16px;
+  gap: 16px;
+  box-sizing: border-box;
 }
 
-.photoImage {
-  width: 100%;
+/* LEFT SIDE: Brand / Mesh Gradient Card */
+.brandCard {
+  flex: 1;
+  border-radius: 20px;
+  /* Background image with a light dark-green overlay */
+  background: 
+    linear-gradient(
+      180deg, 
+      rgba(10, 64, 12, 0.25) 0%, 
+      rgba(10, 64, 12, 0.65) 100%
+    ),
+    url('../assets/brand-card.jpg') center/cover no-repeat;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  color: var(--color-white);
+}
+
+.brandCardContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
-.photoOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    200deg,
-    rgba(10, 46, 54, 0.15) 0%,
-    rgba(10, 46, 54, 0.75) 75%
-  );
+.logoIcon {
+  color: var(--color-primary); /* Forest green icon */
+  display: flex;
+  align-items: center;
 }
 
-.photoHeading {
-  position: absolute;
-  top: var(--space-8);
-  left: var(--space-8);
-  font-family: var(--font-family-base);
-  font-weight: var(--font-weight-bold);
-  font-size: clamp(1rem, 5vw, 2.50rem);
-  line-height: 0.95;
-  color: rgba(255, 255, 255, 0.85);
+.brandCard .logoIcon {
+  color: var(--color-primary);
+}
+
+.brandText {
+  margin-top: auto;
+}
+
+.brandSubHeading {
+  font-size: var(--font-size-xs, 0.85rem);
+  opacity: 0.9;
+  margin: 0 0 8px 0;
+  color: var(--color-white);
+}
+
+.brandHeading {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-white);
   margin: 0;
 }
 
-.photoLink {
-  position: absolute;
-  bottom: var(--space-6);
-  left: var(--space-8);
-  color: var(--color-white);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-  padding-bottom: 2px;
+/* RIGHT SIDE: Form Panel */
+.formCard {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  box-sizing: border-box;
 }
 
-.formCard {
-  position: absolute;
-  top: 25%;
-  right: 0;
-  width: 46%;
-  height: 76%;
-  background-color: var(--color-primary-dark);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  padding: var(--space-5);
+.formContent {
+  width: 100%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 16px 0 6px 0;
+}
 
+.formSubtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0 0 24px 0;
+}
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 16px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
 }
 
-.underlineLabel {
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 1.5px;
-  color: var(--color-accent-light);
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.underlineInput {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-  color: var(--color-white);
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-sm);
-  padding: var(--space-2) 0;
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
 
-.underlineInput::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(10, 64, 12, 0.1);
 }
 
-.underlineInput:focus {
-  border-bottom-color: var(--color-accent-light);
+.input::placeholder {
+  color: var(--color-gray-400);
+}
+
+.eyeButton {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .errorText {
-  color: #FF8A80;
-  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  font-size: var(--font-size-xs, 0.75rem);
   margin: 0;
 }
 
+/* Buttons & Actions */
 .submitButton {
-  margin-top: var(--space-2);
-  align-self: flex-start;
-  border-radius: 5px;
-  padding: 10px 30px;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--color-primary); /* Forest Green */
+  color: var(--color-white);
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
-  font-weight: bold;
-
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 8px;
 }
 
 .submitButton:hover {
-  background-color: var(--color-accent-light);
-  color: var(--color-primary-dark);
+  background-color: var(--color-gray-700);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Social Login Divider */
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0 16px 0;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.separatorText {
+  padding: 0 10px;
+  font-size: 0.65rem;
+  color: var(--text-primary);
+  
+}
+
+/* Social Buttons */
+.socialLogins {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.socialButton {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: background-color 0.2s ease;
+}
+
+.socialButton:hover {
+  background-color: var(--color-gray-50);
+}
+
+.formFooter {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 20px;
+}
+
+.footerLink {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
 }

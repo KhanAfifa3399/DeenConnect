@@ -14,6 +14,7 @@ import TeacherCourseDetailsScreen from '../screens/teacher/TeacherCourseDetailsS
 import CreateAnnouncementScreen from '../screens/teacher/CreateAnnouncementScreen';
 import MyAnnouncementsScreen from '../screens/teacher/MyAnnouncementsScreen';
 import SurahReaderScreen from '../screens/student/SurahReaderScreen';
+import ParaReaderScreen from '../screens/student/ParaReaderScreen';
 import MiniPlayer from '../components/MiniPlayer';
 import RegisterScreen from '../screens/RegisterScreen';
 // ...
@@ -42,6 +43,7 @@ function RootNavigator() {
         <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} />
         <Stack.Screen name="MyAnnouncements" component={MyAnnouncementsScreen} />
         <Stack.Screen name="SurahReader" component={SurahReaderScreen} />
+        <Stack.Screen name="ParaReader" component={ParaReaderScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
 
 

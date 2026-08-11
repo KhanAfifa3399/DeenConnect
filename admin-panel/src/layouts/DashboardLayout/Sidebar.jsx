@@ -5,6 +5,7 @@ import { menuItems } from '../../constants/menuItems';
 import { logout, getUser } from '../../utils/auth';
 import styles from './DashboardLayout.module.css';
 import { getFileUrl } from '../../utils/urls';
+import logo from '../../assets/logo.png';
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -18,9 +19,13 @@ function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logoArea}>
-        <div className={styles.logoBadge}>DC</div>
-        <span className={styles.logoText}>DeenConnect</span>
-      </div>
+  <img 
+    src={logo} // Replace with your image source or variable
+    alt="DeenConnect Logo" 
+    className={styles.logoImage} 
+  />
+  <span className={styles.logoText}>DeenConnect</span>
+</div>
 
       <nav className={styles.nav}>
         {menuItems.map((section) => (

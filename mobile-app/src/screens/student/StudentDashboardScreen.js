@@ -1,5 +1,14 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Pressable, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  Pressable,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -16,41 +25,54 @@ import { getUser, getLastSeenNotifTime } from '../../utils/secureStorage';
 import { getFileUrl } from '../../api/urls';
 import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
 
-
 function StatPill({ icon, value, label }) {
   return (
     <View style={styles.statPill}>
       <View style={styles.statIconWrap}>
-        <Feather name={icon} size={16} color={colors.primaryDark} />
+        <Feather name={icon} size={14} color={colors.primary || '#0D9488'} />
       </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <View>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </View>
     </View>
   );
 }
 
-function SessionCard({ session, index }) {
-  const date = new Date(session.scheduled_at);
-  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+function SessionCard({ session, index, onPress }) {
+  const timeStr = formatWallClockTime(session.scheduled_at);
+  const dateStr = formatWallClockDate(session.scheduled_at);
   const isLive = session.status === 'ongoing';
 
   return (
-    <Animated.View entering={FadeInDown.duration(400).delay(index * 80)} style={styles.sessionCard}>
-      <View style={styles.sessionDateBox}>
-        <Text style={styles.sessionDateText}>{dateStr}</Text>
-        <Text style={styles.sessionTimeText}>{timeStr}</Text>
-      </View>
-      <View style={styles.sessionInfo}>
-        <Text style={styles.sessionTitle} numberOfLines={1}>{session.title}</Text>
-        <Text style={styles.sessionCourse} numberOfLines={1}>{session.course_title}</Text>
-      </View>
-      {isLive && (
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
+    <Animated.View entering={FadeInDown.duration(400).delay(index * 60)}>
+      <Pressable
+        style={({ pressed }) => [styles.sessionCard, pressed && styles.cardPressed]}
+        onPress={onPress}
+      >
+        <View style={styles.sessionDateBox}>
+          <Text style={styles.sessionDateText}>{dateStr}</Text>
+          <Text style={styles.sessionTimeText}>{timeStr}</Text>
         </View>
-      )}
+
+        <View style={styles.sessionInfo}>
+          <Text style={styles.sessionTitle} numberOfLines={1}>
+            {session.title}
+          </Text>
+          <Text style={styles.sessionCourse} numberOfLines={1}>
+            {session.course_title}
+          </Text>
+        </View>
+
+        {isLive ? (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        ) : (
+          <Feather name="chevron-right" size={16} color={colors.gray400 || '#9CA3AF'} />
+        )}
+      </Pressable>
     </Animated.View>
   );
 }
@@ -58,14 +80,17 @@ function SessionCard({ session, index }) {
 function CourseBrowseCard({ course, index, isEnrolled, onPress }) {
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(index * 70)}>
-      <Pressable style={({ pressed }) => [styles.browseCard, pressed && styles.browseCardPressed]} onPress={onPress}>
+      <Pressable
+        style={({ pressed }) => [styles.browseCard, pressed && styles.cardPressed]}
+        onPress={onPress}
+      >
         <View style={styles.browseThumb}>
           <View style={styles.browseThumbInner}>
             {course.thumbnail ? (
               <Image source={{ uri: getFileUrl(course.thumbnail) }} style={styles.browseThumbImage} />
             ) : (
               <LinearGradient
-                colors={[colors.primaryDark, colors.primary]}
+                colors={['#0F172A', colors.primary || '#0D9488']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.browseThumbInner}
@@ -77,28 +102,41 @@ function CourseBrowseCard({ course, index, isEnrolled, onPress }) {
 
           {isEnrolled && (
             <View style={styles.enrolledPill}>
-              <Feather name="check" size={10} color={colors.white} />
+              <Feather name="check" size={10} color="#FFFFFF" />
             </View>
           )}
         </View>
 
         <View style={styles.browseBody}>
-          <Text style={styles.browseSubject}>{course.subject_name}</Text>
-          <Text style={styles.browseTitle} numberOfLines={2}>{course.title}</Text>
-          {/* ... rest of your component */}
+          <Text style={styles.browseSubject}>{course.subject_name || 'General'}</Text>
+          <Text style={styles.browseTitle} numberOfLines={2}>
+            {course.title}
+          </Text>
+
+          <View style={styles.browseMetaRow}>
+            <Feather name="user" size={12} color={colors.gray400 || '#9CA3AF'} />
+            <Text style={styles.browseMetaText} numberOfLines={1}>
+              {course.teacher_name || 'Academic Faculty'}
+            </Text>
+            <View style={styles.metaDivider} />
+            <Feather name="calendar" size={12} color={colors.gray400 || '#9CA3AF'} />
+            <Text style={styles.browseMetaText}>{course.total_weeks || 0}w</Text>
+          </View>
         </View>
+
+        <Feather name="chevron-right" size={18} color={colors.gray300 || '#D1D5DB'} />
       </Pressable>
     </Animated.View>
   );
 }
 
-function StudentDashboardScreen() {
+export default function StudentDashboardScreen() {
   const navigation = useNavigation();
   const [userName, setUserName] = useState('');
   const [courses, setCourses] = useState([]);
   const [enrolledIds, setEnrolledIds] = useState(new Set());
   const [sessions, setSessions] = useState([]);
-  const [unseenCount, setUnseenCount] = useState(4);
+  const [unseenCount, setUnseenCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -121,7 +159,9 @@ function StudentDashboardScreen() {
         const announcements = await getStudentAnnouncements();
         const lastSeen = await getLastSeenNotifTime();
         const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
-        const unseen = announcements.filter((a) => new Date(a.created_at).getTime() > lastSeenTime).length;
+        const unseen = announcements.filter(
+          (a) => new Date(a.created_at).getTime() > lastSeenTime
+        ).length;
         setUnseenCount(unseen);
       } catch (notifErr) {
         console.error('Failed to check notifications:', notifErr);
@@ -152,37 +192,8 @@ function StudentDashboardScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary || '#0D9488'} />
       </SafeAreaView>
-    );
-  }
-
-  function SessionCard({ session, index, onPress }) {
-    const date = new Date(session.scheduled_at);
-    const timeStr = formatWallClockTime(session.scheduled_at);
-const dateStr = formatWallClockDate(session.scheduled_at);
-    const isLive = session.status === 'ongoing';
-
-    return (
-      <Animated.View entering={FadeInDown.duration(400).delay(index * 80)}>
-        <Pressable style={({ pressed }) => [styles.sessionCard, pressed && { opacity: 0.9 }]} onPress={onPress}>
-          <View style={styles.sessionDateBox}>
-            <Text style={styles.sessionDateText}>{dateStr}</Text>
-            <Text style={styles.sessionTimeText}>{timeStr}</Text>
-          </View>
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionTitle} numberOfLines={1}>{session.title}</Text>
-            <Text style={styles.sessionCourse} numberOfLines={1}>{session.course_title}</Text>
-          </View>
-          {isLive && (
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LIVE</Text>
-            </View>
-          )}
-          <Feather name="chevron-right" size={16} color={colors.gray300} />
-        </Pressable>
-      </Animated.View>
     );
   }
 
@@ -193,51 +204,79 @@ const dateStr = formatWallClockDate(session.scheduled_at);
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary || '#0D9488']}
+            tintColor={colors.primary || '#0D9488'}
+          />
         }
       >
+        {/* Academic Header Hero Card */}
         <LinearGradient
-          colors={[colors.primaryDark, colors.primary]}
+          colors={['#0F172A', colors.primaryDark || '#0F766E']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.headerCard}
         >
-          <Text style={styles.greeting}>Assalamu Alaikum,</Text>
-          <Text style={styles.greetingName}>{userName} 👋</Text>
+          <View style={styles.headerTopRow}>
+            <View>
+              <Text style={styles.greeting}>Assalamu Alaikum,</Text>
+              <Text style={styles.greetingName}>{userName} 👋</Text>
+            </View>
+
+            {/* Quick Notification Launcher */}
+            <Pressable
+              style={styles.headerNotifBtn}
+              onPress={() => navigation.navigate('Notifications')}
+            >
+              <Feather name="bell" size={18} color="#FFFFFF" />
+              {unseenCount > 0 && <View style={styles.headerNotifDot} />}
+            </Pressable>
+          </View>
 
           <View style={styles.statsRow}>
-            <StatPill icon="book" value={courses.length} label="Courses" />
+            <StatPill icon="book-open" value={courses.length} label="Courses" />
             <StatPill icon="check-circle" value={enrolledIds.size} label="Enrolled" />
             <StatPill icon="radio" value={sessions.length} label="Live Soon" />
           </View>
         </LinearGradient>
 
-        <Pressable style={styles.notifCard} onPress={() => navigation.navigate('Notifications')}>
+        {/* Announcement Banner */}
+        <Pressable
+          style={({ pressed }) => [styles.notifCard, pressed && styles.cardPressed]}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <View style={styles.notifIconWrap}>
-            <Feather name="bell" size={18} color={colors.primaryDark} />
+            <Feather name="bell" size={16} color={colors.primary || '#0D9488'} />
             {unseenCount > 0 && (
               <View style={styles.notifBadge}>
-                <Text style={styles.notifBadgeText}>{unseenCount > 9 ? '9+' : unseenCount}</Text>
+                <Text style={styles.notifBadgeText}>
+                  {unseenCount > 9 ? '9+' : unseenCount}
+                </Text>
               </View>
             )}
           </View>
           <Text style={styles.notifCardText}>
-            {unseenCount > 0 ? `${unseenCount} new announcement${unseenCount > 1 ? 's' : ''}` : 'No new announcements'}
+            {unseenCount > 0
+              ? `${unseenCount} new academic announcement${unseenCount > 1 ? 's' : ''}`
+              : 'No new announcements'}
           </Text>
-          <Feather name="chevron-right" size={16} color={colors.gray300} />
+          <Feather name="chevron-right" size={16} color={colors.gray400 || '#9CA3AF'} />
         </Pressable>
 
+        {/* Upcoming Live Sessions Section */}
         <View style={styles.sectionHeaderRow}>
-          <Feather name="radio" size={16} color={colors.primaryDark} />
-          <Text style={styles.sectionTitle}>Upcoming Live Sessions</Text>
+          <Text style={styles.sectionTitle}>UPCOMING LIVE SESSIONS</Text>
         </View>
+
         {sessions.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Feather name="calendar" size={22} color={colors.gray300} />
-            <Text style={styles.emptyText}>No upcoming live sessions right now.</Text>
+            <Feather name="calendar" size={20} color={colors.gray400 || '#9CA3AF'} />
+            <Text style={styles.emptyText}>No upcoming live sessions scheduled right now.</Text>
           </View>
         ) : (
-          sessions.map((session, index) =>
+          sessions.map((session, index) => (
             <SessionCard
               key={session.id}
               session={session}
@@ -251,16 +290,17 @@ const dateStr = formatWallClockDate(session.scheduled_at);
               }
             />
           ))
-        }
+        )}
 
+        {/* Explore Courses Section */}
         <View style={styles.sectionHeaderRow}>
-          <Feather name="compass" size={16} color={colors.primaryDark} />
-          <Text style={styles.sectionTitle}>Explore Courses</Text>
+          <Text style={styles.sectionTitle}>EXPLORE COURSES</Text>
         </View>
+
         {courses.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Feather name="inbox" size={22} color={colors.gray300} />
-            <Text style={styles.emptyText}>No courses published yet.</Text>
+            <Feather name="inbox" size={20} color={colors.gray400 || '#9CA3AF'} />
+            <Text style={styles.emptyText}>No published courses available at the moment.</Text>
           </View>
         ) : (
           <View style={styles.browseGrid}>
@@ -281,107 +321,340 @@ const dateStr = formatWallClockDate(session.scheduled_at);
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.primaryDark },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gray50 },
-  container: { flex: 1, backgroundColor: colors.gray50 },
-  content: { paddingBottom: spacing.space10 },
+  safeArea: { flex: 1, backgroundColor: '#0F172A' },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingBottom: 40 },
+
+  /* Top Academic Hero Card */
   headerCard: {
-    paddingHorizontal: spacing.space5, paddingTop: spacing.space5, paddingBottom: spacing.space6,
-    borderBottomLeftRadius: spacing.radiusXl, borderBottomRightRadius: spacing.radiusXl,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  greeting: { fontSize: typography.fontSizeSm, color: 'rgba(255,255,255,0.75)' },
-  greetingName: { fontSize: typography.fontSize2xl, fontWeight: typography.weightBold, color: colors.white, marginBottom: spacing.space5 },
-  statsRow: { flexDirection: 'row', gap: spacing.space3 },
-  statPill: { flex: 1, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: spacing.radiusLg, padding: spacing.space3, alignItems: 'center' },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  greeting: {
+    fontSize: typography.fontSizeXs || 12,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  greetingName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  headerNotifBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  headerNotifDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.error || '#EF4444',
+  },
+
+  /* Stat Pills Bar */
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  statPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 14,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
   statIconWrap: {
-    width: 30, height: 30, borderRadius: spacing.radiusFull, backgroundColor: colors.white,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.space2,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statValue: { fontSize: typography.fontSizeLg, fontWeight: typography.weightBold, color: colors.white },
-  statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 1 },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  statLabel: {
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+
+  /* Notification / Announcement Banner */
   notifCard: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.space3,
-    backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space4,
-    marginHorizontal: spacing.space5, marginTop: spacing.space4,
-    shadowColor: colors.gray900, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  notifIconWrap: { position: 'relative' },
+  notifIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: colors.accentLight || '#F0FDFA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
   notifBadge: {
-    position: 'absolute', top: -4, right: -6, minWidth: 16, height: 16, borderRadius: spacing.radiusFull,
-    backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.error || '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
   },
-  notifBadgeText: { color: colors.white, fontSize: 9, fontWeight: typography.weightBold },
-  notifCardText: { flex: 1, fontSize: typography.fontSizeSm, color: colors.gray900, fontWeight: typography.weightMedium },
+  notifBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '800',
+  },
+  notifCardText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.gray800 || '#1F2937',
+    fontWeight: '600',
+  },
+
+  /* Section Title Row */
   sectionHeaderRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.space2,
-    paddingHorizontal: spacing.space5, marginTop: spacing.space6, marginBottom: spacing.space3,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
   },
-  sectionTitle: { fontSize: typography.fontSizeBase, fontWeight: typography.weightSemibold, color: colors.gray900 },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gray400 || '#9CA3AF',
+    letterSpacing: 0.8,
+  },
+
+  /* Empty State Placeholder */
   emptyBox: {
-    backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space6,
-    marginHorizontal: spacing.space5, alignItems: 'center', gap: spacing.space2,
+    backgroundColor: colors.gray50 || '#F9FAFB',
+    borderRadius: 14,
+    padding: 20,
+    marginHorizontal: 20,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    borderStyle: 'dashed',
   },
-  emptyText: { color: colors.gray500, fontSize: typography.fontSizeSm, textAlign: 'center' },
+  emptyText: {
+    color: colors.gray500 || '#6B7280',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+
+  /* Live Session Cards */
   sessionCard: {
-    flexDirection: 'row', backgroundColor: colors.white, borderRadius: spacing.radiusLg, padding: spacing.space4,
-    marginHorizontal: spacing.space5, marginBottom: spacing.space3, gap: spacing.space4, alignItems: 'center',
-    shadowColor: colors.gray900, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 10,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    elevation: 1,
   },
   sessionDateBox: {
-    backgroundColor: colors.accentLight, borderRadius: spacing.radiusMd, paddingVertical: spacing.space2,
-    paddingHorizontal: spacing.space3, alignItems: 'center', minWidth: 64,
+    backgroundColor: colors.accentLight || '#F0FDFA',
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    minWidth: 60,
   },
-  sessionDateText: { fontSize: typography.fontSizeXs, fontWeight: typography.weightSemibold, color: colors.primaryDark },
-  sessionTimeText: { fontSize: typography.fontSizeXs, color: colors.primaryDark },
+  sessionDateText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.primary || '#0D9488',
+  },
+  sessionTimeText: {
+    fontSize: 10,
+    color: colors.primary || '#0D9488',
+    fontWeight: '600',
+    marginTop: 1,
+  },
   sessionInfo: { flex: 1 },
-  sessionTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightSemibold, color: colors.gray900 },
-  sessionCourse: { fontSize: typography.fontSizeXs, color: colors.gray500 },
+  sessionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.gray900 || '#111827',
+  },
+  sessionCourse: {
+    fontSize: 11,
+    color: colors.gray500 || '#6B7280',
+    marginTop: 2,
+  },
   liveBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(211,47,47,0.1)',
-    paddingHorizontal: spacing.space2, paddingVertical: 4, borderRadius: spacing.radiusFull,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
-  liveDot: { width: 6, height: 6, borderRadius: spacing.radiusFull, backgroundColor: colors.error },
-  liveText: { fontSize: 9, fontWeight: typography.weightBold, color: colors.error },
-  browseGrid: { paddingHorizontal: spacing.space5, gap: spacing.space4 },
-  browseCard: {
-    flexDirection: 'row', backgroundColor: colors.white, borderRadius: spacing.radiusXl, padding: spacing.space4, gap: spacing.space3,
-    shadowColor: colors.gray900, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 3,
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#DC2626',
   },
-  browseCardPressed: { opacity: 0.92 },
- // In StyleSheet.create:
-browseThumb: {
-  width: 68,
-  height: 68,
-  borderRadius: spacing.radiusLg,
-  alignItems: 'center',
-  justifyContent: 'center',
-  position: 'relative',
-  backgroundColor: colors.gray100,
-  // Removed overflow: 'hidden' from here
-},
-browseThumbInner: {
-  width: '100%',
-  height: '100%',
-  borderRadius: spacing.radiusLg,
-  overflow: 'hidden', // Keep overflow hidden only for the inner image/gradient
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-browseThumbImage: { width: '100%', height: '100%' },
-  browseThumbText: { color: colors.white, fontSize: typography.fontSize2xl, fontWeight: typography.weightBold },
-  enrolledPill: {
-    position: 'absolute', bottom: -4, right: -4, width: 20, height: 20, borderRadius: spacing.radiusFull,
-    backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white,
+  liveText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#DC2626',
   },
-  browseBody: { flex: 1, gap: 3 },
-  browseSubject: { fontSize: 10, fontWeight: typography.weightSemibold, color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
-  browseTitle: { fontSize: typography.fontSizeSm, fontWeight: typography.weightBold, color: colors.gray900, lineHeight: 18 },
-  browseMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  browseMetaText: { fontSize: 11, color: colors.gray500, flexShrink: 1 },
-  metaDivider: { width: 1, height: 9, backgroundColor: colors.gray200, marginHorizontal: 2 },
-  browsePrice: { fontSize: 11, color: colors.primary, fontWeight: typography.weightSemibold },
-  browseButton: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.space1 },
-  browseButtonText: { fontSize: 12, fontWeight: typography.weightSemibold, color: colors.primary },
-});
 
-export default StudentDashboardScreen;
+  /* Browse Course Cards */
+  browseGrid: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  browseCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  browseThumb: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    position: 'relative',
+    backgroundColor: colors.gray100 || '#F3F4F6',
+  },
+  browseThumbInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  browseThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  browseThumbText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  enrolledPill: {
+    position: 'absolute',
+    bottom: -3,
+    right: -3,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.success || '#059669',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  browseBody: { flex: 1 },
+  browseSubject: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.primary || '#0D9488',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  browseTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.gray900 || '#111827',
+    marginTop: 2,
+    lineHeight: 18,
+  },
+  browseMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+  },
+  browseMetaText: {
+    fontSize: 11,
+    color: colors.gray500 || '#6B7280',
+    maxWidth: 100,
+  },
+  metaDivider: {
+    width: 1,
+    height: 10,
+    backgroundColor: colors.gray200 || '#E5E7EB',
+    marginHorizontal: 4,
+  },
+
+  cardPressed: {
+    opacity: 0.85,
+  },
+});
