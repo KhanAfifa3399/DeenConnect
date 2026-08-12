@@ -1,4 +1,40 @@
 const liveSessionRepository = require('../repositories/liveSessionRepository');
+const enrollmentRepository = require('../repositories/enrollmentRepository');
+const notificationRepository = require('../repositories/notificationRepository');
+
+async function notifyOnSessionCreated(session, weekId, creatorRole) {
+    try {
+        const courseInfo = await liveSessionRepository.getCourseInfoForWeek(weekId);
+        if (!courseInfo) return;
+
+        const enrollments = await enrollmentRepository.getCourseEnrollments(courseInfo.course_id);
+        const studentIds = enrollments.map((e) => e.student_id);
+
+        let recipientIds = [...studentIds];
+        let creatorLabel;
+
+        if (creatorRole === 'teacher') {
+            const adminIds = await notificationRepository.getAdminIds();
+            recipientIds = [...recipientIds, ...adminIds];
+            creatorLabel = 'your teacher';
+        } else {
+            recipientIds = [...recipientIds, courseInfo.teacher_id];
+            creatorLabel = 'the admin';
+        }
+
+        if (recipientIds.length === 0) return;
+
+        await notificationRepository.createForUsers(recipientIds, {
+            type: 'live_session_scheduled',
+            title: 'New Live Session Scheduled',
+            message: `A new live session "${session.title}" has been scheduled for "${courseInfo.course_title}" by ${creatorLabel}.`,
+            live_session_id: session.id,
+        });
+    } catch (notifyErr) {
+        // Notification failure should never block session creation from succeeding
+        console.error('Failed to send session-created notifications:', notifyErr.message);
+    }
+}
 
 async function createSession(req, res) {
     try {
@@ -8,6 +44,8 @@ async function createSession(req, res) {
         const session = await liveSessionRepository.createLiveSession({
             week_id, teacher_id, title, description, meeting_platform, meeting_link, scheduled_at, duration_minutes,
         });
+
+        await notifyOnSessionCreated(session, week_id, req.user.role);
 
         res.status(201).json({ success: true, data: session });
     } catch (error) {

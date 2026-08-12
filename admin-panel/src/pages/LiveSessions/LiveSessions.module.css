@@ -73,3 +73,34 @@
 .joinLink:hover {
   text-decoration: underline;
 }
+.liveTag {
+  display: inline-block;
+  margin-left: var(--space-2);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  color: #DC2626;
+  background-color: #FEE2E2;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
+  vertical-align: middle;
+}
+
+.endedTag {
+  display: inline-block;
+  margin-left: var(--space-2);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary, #F3F4F6);
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
+  vertical-align: middle;
+}
+
+.joinLinkDisabled {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+  opacity: 0.5;
+}

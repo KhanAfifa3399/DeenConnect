@@ -16,6 +16,7 @@ const duaRoutes = require('./routes/duaRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
 const activityLogRoutes = require('./routes/activityLogRoutes');
 const reportsRoutes = require('./routes/reportsRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 
 
@@ -47,5 +48,6 @@ app.use('/api/duas', duaRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 module.exports = app;

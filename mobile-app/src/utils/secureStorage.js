@@ -20,6 +20,7 @@ export async function getUser() {
 export async function clearAuth() {
   await SecureStore.deleteItemAsync('token');
   await SecureStore.deleteItemAsync('user');
+  await SecureStore.deleteItemAsync('notif_last_seen');
 }
 
 export async function getLastSeenNotifTime() {

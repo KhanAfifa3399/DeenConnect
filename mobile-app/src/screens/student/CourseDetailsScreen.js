@@ -24,6 +24,8 @@ import { getLecturesByWeek } from '../../api/lecturesApi';
 import { getMyEnrollments } from '../../api/enrollmentsApi';
 import { getSessionsByWeek } from '../../api/liveSessionsApi';
 import EnrollModal from './EnrollModal';
+import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
+// import { formatWallClockDate, formatWallClockTime } from '../../utils/formatDateTime';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -249,40 +251,53 @@ export default function CourseDetailsScreen({ route, navigation }) {
                     <ActivityIndicator size="small" color={colors.primary || '#0D9488'} style={{ paddingVertical: 20 }} />
                   ) : (
                     <>
-                      {/* Live Sessions Section */}
+                     {/* Live Sessions Section */}
                       {weekSessions.length > 0 && (
                         <View style={styles.sessionsSection}>
                           <Text style={styles.subSectionTitle}>LIVE INTERACTIVE SESSIONS</Text>
-                          {weekSessions.map((session) => (
-                            <Pressable
-                              key={session.id}
-                              style={({ pressed }) => [styles.sessionRow, pressed && styles.pressed]}
-                              onPress={() => Linking.openURL(session.meeting_link)}
-                            >
-                              <View style={styles.sessionIconWrap}>
-                                <Feather name="radio" size={16} color={colors.primary || '#0D9488'} />
-                              </View>
-                              <View style={{ flex: 1 }}>
-                                <Text style={styles.sessionRowTitle}>{session.title}</Text>
-                                <Text style={styles.sessionRowMeta}>
-                                  {new Date(session.scheduled_at).toLocaleDateString([], { month: 'short', day: 'numeric' })} at{' '}
-                                  {new Date(session.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </Text>
-                              </View>
+                          {weekSessions.map((session) => {
+                            const isLive = session.computed_status === 'live';
+                            const isEnded = session.computed_status === 'ended' || session.computed_status === 'cancelled';
 
-                              {session.status === 'ongoing' ? (
-                                <View style={styles.joinBadgeLive}>
-                                  <View style={styles.livePulseDot} />
-                                  <Text style={styles.joinBadgeLiveText}>LIVE</Text>
+                            return (
+                              <Pressable
+                                key={session.id}
+                                style={({ pressed }) => [
+                                  styles.sessionRow,
+                                  pressed && !isEnded && styles.pressed,
+                                  isEnded && styles.sessionRowDisabled,
+                                ]}
+                                disabled={isEnded}
+                                onPress={() => Linking.openURL(session.meeting_link)}
+                              >
+                                <View style={styles.sessionIconWrap}>
+                                  <Feather name="radio" size={16} color={isEnded ? colors.gray400 || '#9CA3AF' : colors.primary || '#0D9488'} />
                                 </View>
-                              ) : (
-                                <View style={styles.joinBadgeScheduled}>
-                                  <Feather name="external-link" size={12} color={colors.primary || '#0D9488'} />
-                                  <Text style={styles.scheduledText}>Join</Text>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={styles.sessionRowTitle}>{session.title}</Text>
+                                  <Text style={styles.sessionRowMeta}>
+                                    {formatWallClockDate(session.scheduled_at)} at {formatWallClockTime(session.scheduled_at)}
+                                  </Text>
                                 </View>
-                              )}
-                            </Pressable>
-                          ))}
+
+                                {isLive ? (
+                                  <View style={styles.joinBadgeLive}>
+                                    <View style={styles.livePulseDot} />
+                                    <Text style={styles.joinBadgeLiveText}>LIVE</Text>
+                                  </View>
+                                ) : isEnded ? (
+                                  <View style={styles.joinBadgeEnded}>
+                                    <Text style={styles.joinBadgeEndedText}>Ended</Text>
+                                  </View>
+                                ) : (
+                                  <View style={styles.joinBadgeScheduled}>
+                                    <Feather name="external-link" size={12} color={colors.primary || '#0D9488'} />
+                                    <Text style={styles.scheduledText}>Join</Text>
+                                  </View>
+                                )}
+                              </Pressable>
+                            );
+                          })}
                         </View>
                       )}
 
@@ -762,5 +777,20 @@ const styles = StyleSheet.create({
 
   pressed: {
     opacity: 0.8,
+  },
+  sessionRowDisabled: { opacity: 0.5 },
+  joinBadgeEnded: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  joinBadgeEndedText: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '700',
+  },
+  sessionRowDisabled: {
+    opacity: 0.5,
   },
 });

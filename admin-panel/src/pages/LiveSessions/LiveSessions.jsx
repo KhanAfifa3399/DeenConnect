@@ -96,37 +96,51 @@ function LiveSessions() {
           <p className={liveStyles.placeholderText}>No live sessions scheduled for this course yet.</p>
         ) : (
           <div className={liveStyles.sessionsList}>
-            {sessions.map((session) => (
-              <div key={session.id} className={liveStyles.sessionCard}>
-                <div className={liveStyles.sessionIcon}>
-                  <FiVideo />
+            {sessions.map((session) => {
+              const isLive = session.computed_status === 'live';
+              const isEnded = session.computed_status === 'ended';
+              const isCancelled = session.status === 'cancelled';
+
+              return (
+                <div key={session.id} className={liveStyles.sessionCard}>
+                  <div className={liveStyles.sessionIcon}>
+                    <FiVideo />
+                  </div>
+                  <div className={liveStyles.sessionInfo}>
+                    <p className={liveStyles.sessionTitle}>
+                      {session.title}
+                      {isLive && <span className={liveStyles.liveTag}>LIVE</span>}
+                      {isEnded && <span className={liveStyles.endedTag}>Ended</span>}
+                    </p>
+                    <p className={liveStyles.sessionMeta}>
+                      {session.weekTitle} · {session.meeting_platform} ·{' '}
+                      {formatWallClockDate(session.scheduled_at)}, {formatWallClockTime(session.scheduled_at)}
+                      {session.duration_minutes && ` · ${session.duration_minutes} min`}
+                    </p>
+                  </div>
+                  <select
+                    className={liveStyles.statusSelect}
+                    value={session.status}
+                    onChange={(e) => handleStatusChange(session, e.target.value)}
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  {isEnded || isCancelled ? (
+                    <span className={liveStyles.joinLinkDisabled}>Join Link</span>
+                  ) : (
+                    <a href={session.meeting_link} target="_blank" rel="noopener noreferrer" className={liveStyles.joinLink}>
+                      Join Link
+                    </a>
+                  )}
+                  <button className={styles.iconButtonDanger} onClick={() => handleDelete(session)}>
+                    <FiTrash2 />
+                  </button>
                 </div>
-                <div className={liveStyles.sessionInfo}>
-                  <p className={liveStyles.sessionTitle}>{session.title}</p>
-                  <p className={liveStyles.sessionMeta}>
-                    {session.weekTitle} · {session.meeting_platform} ·{' '}
-                    {formatWallClockDate(session.scheduled_at)}, {formatWallClockTime(session.scheduled_at)}
-                    {session.duration_minutes && ` · ${session.duration_minutes} min`}
-                  </p>
-                </div>
-                <select
-                  className={liveStyles.statusSelect}
-                  value={session.status}
-                  onChange={(e) => handleStatusChange(session, e.target.value)}
-                >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="ongoing">Ongoing</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-                <a href={session.meeting_link} target="_blank" rel="noopener noreferrer" className={liveStyles.joinLink}>
-                  Join Link
-                </a>
-                <button className={styles.iconButtonDanger} onClick={() => handleDelete(session)}>
-                  <FiTrash2 />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
