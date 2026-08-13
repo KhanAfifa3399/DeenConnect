@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiTrash2 } from 'react-icons/fi';
 import Card from '../../components/Card/Card';
 import Pagination from '../../components/Pagination/Pagination';
@@ -10,6 +11,7 @@ import searchStyles from './Students.module.css';
 const ITEMS_PER_PAGE = 10;
 
 function Students() {
+  const navigate = useNavigate();
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +47,8 @@ function Students() {
 
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(filteredStudents, ITEMS_PER_PAGE);
 
-  async function handleDelete(student) {
+  async function handleDelete(e, student) {
+    e.stopPropagation();
     const confirmed = window.confirm(`Deactivate ${student.full_name}'s account?`);
     if (!confirmed) return;
     try {
@@ -93,7 +96,11 @@ function Students() {
               </thead>
               <tbody>
                 {paginatedItems.map((student) => (
-                  <tr key={student.id}>
+                  <tr
+                    key={student.id}
+                    onClick={() => navigate(`/students/${student.id}`)}
+                    className={searchStyles.clickableRow}
+                  >
                     <td className={styles.nameCell}>{student.full_name}</td>
                     <td>{student.email}</td>
                     <td>{student.phone || '—'}</td>
@@ -103,7 +110,7 @@ function Students() {
                       </span>
                     </td>
                     <td>
-                      <button className={styles.iconButtonDanger} onClick={() => handleDelete(student)}>
+                      <button className={styles.iconButtonDanger} onClick={(e) => handleDelete(e, student)}>
                         <FiTrash2 />
                       </button>
                     </td>

@@ -1,50 +1,383 @@
+.pageHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.welcomeTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.welcomeSub {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+.updatedNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.refreshIcon {
+  color: var(--color-primary);
+}
+
+/* ---------- KPI cards ---------- */
+
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-5);
-  margin-bottom: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
 .statCard {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
-.statIcon{
-    border-radius: 10px;
-    padding:8px;
+.statCardLink {
+  text-decoration: none;
+  color: inherit;
+}
 
+.statCardAlert {
+  border: 1px solid #ED6C02;
+}
+
+.statIcon {
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .statIconSvg {
-  width: 24px;
-  height: 24px;
-  color: #ffffff; 
+  color: #ffffff;
 }
 
 .statValue {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0;
 }
 
 .statLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
-  margin: 0;
+  margin: 2px 0 0;
 }
 
-.recentCard {
+/* ---------- This Month strip ---------- */
+
+.monthStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  color: #fff;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
+}
+
+.monthStripLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.monthStripItem {
+  opacity: 0.95;
+}
+
+.monthStripDot {
+  opacity: 0.6;
+}
+
+.monthStripLink {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: #fff;
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.monthStripLink:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Two column grid ---------- */
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.sectionCard {
   overflow-x: auto;
 }
 
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
 .sectionTitle {
-  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0 0 var(--space-4) 0;
+}
+
+.sectionHead .sectionTitle {
+  margin-bottom: 0;
+}
+
+.sectionIcon {
+  color: var(--color-primary);
+}
+
+.viewAllLink {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+}
+
+.emptyState {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--space-4) 0;
+  margin: 0;
+}
+
+/* ---------- Today's sessions list ---------- */
+
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sessionRow:last-child {
+  border-bottom: none;
+}
+
+.sessionTimeCol {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  min-width: 76px;
+}
+
+.sessionInfoCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionTitleText {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sessionSubText {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.liveTag {
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  color: #DC2626;
+  background-color: #FEE2E2;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.endedTag,
+.cancelledTag {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: #6B7280;
+  background-color: #F3F4F6;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.upcomingTag {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background-color: var(--bg-secondary, #F0FDFA);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* ---------- Pending approvals ---------- */
+
+.approvalList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.approvalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.approvalRow:last-child {
+  border-bottom: none;
+}
+
+.approvalName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.approvalEmail {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.approvalActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.approveBtn,
+.rejectBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.approveBtn {
+  background-color: #DCFCE7;
+  color: #16A34A;
+}
+
+.rejectBtn {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.approveBtn:hover,
+.rejectBtn:hover {
+  opacity: 0.8;
+}
+
+/* ---------- Recent activity ---------- */
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.activityRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.activityDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.activityText {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.activityTime {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+/* ---------- Table (Recent Registrations) ---------- */
+
+.tableWrapper {
+  overflow-x: auto;
 }
 
 .table {
@@ -81,4 +414,12 @@
 
 .errorText {
   color: var(--color-error);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
 }

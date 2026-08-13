@@ -67,3 +67,285 @@
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
 }
+
+.clickableRow {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickableRow:hover {
+  background-color: var(--bg-hover, var(--color-gray-50, #F9FAFB));
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-5);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.backLink:hover {
+  color: var(--color-primary);
+  transform: translateX(-2px);
+}
+
+/* ---------- Hero ---------- */
+
+.heroCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  box-shadow: var(--shadow-md);
+}
+
+.avatarFallback {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-md);
+}
+
+.heroInfo {
+  flex: 1;
+  min-width: 220px;
+}
+
+.heroTopRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.studentName {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.statusActive {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #16A34A;
+  background-color: #DCFCE7;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.statusInactive {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #6B7280;
+  background-color: #F3F4F6;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.metaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.metaIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.statsRow {
+  display: flex;
+  gap: var(--space-6);
+  flex-shrink: 0;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 96px;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-secondary, #F9FAFB);
+  border-radius: var(--radius-lg);
+}
+
+.statValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+  text-align: center;
+}
+
+/* ---------- Enrolled Courses ---------- */
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4);
+}
+
+.emptyState {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.courseCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.courseIconWrap {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-secondary, #F0FDFA);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.courseTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.courseSub {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.enrollStatus_default,
+.enrollStatus_active {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #16A34A;
+  background-color: #DCFCE7;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.enrollStatus_completed {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #2563EB;
+  background-color: #DBEAFE;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.enrollStatus_dropped {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #DC2626;
+  background-color: #FEE2E2;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.progressWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.progressTrack {
+  flex: 1;
+  height: 6px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  min-width: 32px;
+}
+
+.courseFooter {
+  border-top: 1px solid var(--border-color);
+  padding-top: var(--space-3);
+}
+
+.attendanceNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}

@@ -11,6 +11,7 @@ router.put('/me/photo', authenticate, uploadImage.single('photo'), userControlle
 
 router.get('/', authenticate, authorize('admin'), userController.getUsers);
 router.get('/:id', authenticate, userController.getUserById);
+router.get('/:id/student-detail', authenticate, authorize('admin'), userController.getStudentDetail);
 router.post('/', authenticate, authorize('admin'), createUserRules, validate, userController.createUser);
 router.put('/:id/approve', authenticate, authorize('admin'), userController.approveTeacher);
 router.put('/:id/reject', authenticate, authorize('admin'), userController.rejectTeacher);

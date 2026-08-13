@@ -101,4 +101,21 @@ async function getCourseInfoForWeek(weekId) {
     return result.rows[0] || null;
 }
 
-module.exports = { createLiveSession, getSessionsByWeek, getUpcomingSessionsForStudent, getUpcomingSessionsForTeacher, updateSessionStatus, deactivateSession, getCourseInfoForWeek };
+// Admin-wide view: every live session happening today, across every course/teacher.
+async function getTodaysSessions() {
+    const result = await pool.query(
+        `SELECT ls.id, ls.title, ls.scheduled_at, ls.duration_minutes, ls.status,
+                ${COMPUTED_STATUS_SQL.replace(/\bstatus\b/g, 'ls.status').replace(/scheduled_at/g, 'ls.scheduled_at').replace(/duration_minutes/g, 'ls.duration_minutes')} AS computed_status,
+                c.title AS course_title, t.full_name AS teacher_name
+         FROM live_sessions ls
+         JOIN weeks w ON ls.week_id = w.id
+         JOIN courses c ON w.course_id = c.id
+         JOIN users t ON c.teacher_id = t.id
+         WHERE ls.is_active = true
+           AND DATE(ls.scheduled_at) = CURRENT_DATE
+         ORDER BY ls.scheduled_at ASC`
+    );
+    return result.rows;
+}
+
+module.exports = { createLiveSession, getSessionsByWeek, getUpcomingSessionsForStudent, getUpcomingSessionsForTeacher, updateSessionStatus, deactivateSession, getCourseInfoForWeek, getTodaysSessions };

@@ -45,3 +45,8 @@ export async function rejectTeacher(id) {
   const response = await axiosClient.put(`/users/${id}/reject`);
   return response.data.data;
 }
+
+export async function getStudentDetail(id) {
+  const response = await axiosClient.get(`/users/${id}/student-detail`);
+  return response.data.data;
+}

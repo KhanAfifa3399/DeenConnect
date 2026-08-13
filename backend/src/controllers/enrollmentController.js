@@ -27,8 +27,26 @@ async function enrollInCourse(req, res) {
 async function getMyEnrollments(req, res) {
     try {
         const studentId = req.user.userId;
-        const enrollments = await enrollmentRepository.getStudentEnrollments(studentId);
-        res.status(200).json({ success: true, data: enrollments });
+        const enrollments = await enrollmentRepository.getStudentEnrollmentsWithProgress(studentId);
+
+        // Mapped back to the original field names (id, status, progress_percentage)
+        // so the mobile app screen needs zero changes — only the VALUES are now real,
+        // computed live from attendance instead of the old static DB column.
+        const mapped = enrollments.map((e) => ({
+            id: e.enrollment_id,
+            status: e.enrollment_status,
+            progress_percentage: e.computed_progress_percentage,
+            enrolled_at: e.enrolled_at,
+            completed_at: e.completed_at,
+            course_id: e.course_id,
+            course_title: e.course_title,
+            thumbnail: e.thumbnail,
+            total_weeks: e.total_weeks,
+            sessions_held: e.sessions_held,
+            sessions_attended: e.sessions_attended,
+        }));
+
+        res.status(200).json({ success: true, data: mapped });
     } catch (error) {
         console.error('Error fetching enrollments:', error.message);
         res.status(500).json({ success: false, message: 'Failed to fetch enrollments' });

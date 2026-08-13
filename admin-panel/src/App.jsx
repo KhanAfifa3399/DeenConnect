@@ -23,6 +23,7 @@ import ActivityLogs from './pages/ActivityLogs/ActivityLogs';
 import Reports from './pages/Reports/Reports';
 import Profile from './pages/Profile/Profile';
 import Settings from './pages/Settings/Settings';
+import StudentDetail from './pages/Students/StudentDetail';
 // ...
 // ...
 // ...
@@ -71,6 +72,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/subjects" element={<Subjects />} />
             <Route path="/students" element={<Students />} />
+            <Route path="/students/:id" element={<StudentDetail />} />
             <Route path="/teachers" element={<Teachers />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:id" element={<CourseDetails />} />

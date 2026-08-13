@@ -20,7 +20,6 @@ export async function getUser() {
 export async function clearAuth() {
   await SecureStore.deleteItemAsync('token');
   await SecureStore.deleteItemAsync('user');
-  await SecureStore.deleteItemAsync('notif_last_seen');
 }
 
 export async function getLastSeenNotifTime() {
@@ -30,4 +29,13 @@ export async function getLastSeenNotifTime() {
 
 export async function setLastSeenNotifTime() {
   await SecureStore.setItemAsync('notif_last_seen', new Date().toISOString());
+}
+
+export async function getNotificationsEnabled() {
+  const val = await SecureStore.getItemAsync('notifications_enabled');
+  return val === null ? true : val === 'true';
+}
+
+export async function setNotificationsEnabled(enabled) {
+  await SecureStore.setItemAsync('notifications_enabled', String(enabled));
 }

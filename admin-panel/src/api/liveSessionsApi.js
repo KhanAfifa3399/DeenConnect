@@ -19,3 +19,8 @@ export async function deleteLiveSession(id) {
   const response = await axiosClient.delete(`/live-sessions/${id}`);
   return response.data;
 }
+
+export async function getTodaysSessions() {
+  const response = await axiosClient.get('/live-sessions/today');
+  return response.data.data;
+}

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const userRepository = require('../repositories/userRepository');
 const activityLogRepository = require('../repositories/activityLogRepository');
+const enrollmentRepository = require('../repositories/enrollmentRepository');
 
 
 
@@ -147,7 +148,33 @@ async function rejectTeacher(req, res) {
     }
 }
 
-module.exports = { getUsers, getUserById, createUser, updateUser, changePassword, uploadPhoto, deleteUser, getPendingTeachers, approveTeacher, rejectTeacher };
+async function getStudentDetail(req, res) {
+    try {
+        const student = await userRepository.getUserById(req.params.id);
+        if (!student || student.role !== 'student') {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
 
+        const enrollments = await enrollmentRepository.getStudentEnrollmentsWithProgress(req.params.id);
 
+        const totalSessionsHeld = enrollments.reduce((sum, e) => sum + e.sessions_held, 0);
+        const totalAttended = enrollments.reduce((sum, e) => sum + e.sessions_attended, 0);
+        const overallAttendanceRate = totalSessionsHeld > 0 ? Math.round((totalAttended / totalSessionsHeld) * 100) : null;
 
+        res.status(200).json({
+            success: true,
+            data: {
+                profile: student,
+                enrollments,
+                overallAttendanceRate,
+                totalSessionsHeld,
+                totalAttended,
+            },
+        });
+    } catch (error) {
+        console.error('Error fetching student detail:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch student detail' });
+    }
+}
+
+module.exports = { getUsers, getUserById, createUser, updateUser, changePassword, uploadPhoto, deleteUser, getPendingTeachers, approveTeacher, rejectTeacher, getStudentDetail };

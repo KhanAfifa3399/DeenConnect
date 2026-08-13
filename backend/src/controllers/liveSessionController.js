@@ -127,4 +127,14 @@ async function getMyUpcomingAsTeacher(req, res) {
     }
 }
 
-module.exports = { createSession, getSessionsByWeek, getMyUpcomingSessions, getMyUpcomingSessionsForTeacher, getMyUpcomingAsTeacher, updateStatus, deleteSession };
+async function getTodaysSessions(req, res) {
+    try {
+        const sessions = await liveSessionRepository.getTodaysSessions();
+        res.status(200).json({ success: true, data: sessions });
+    } catch (error) {
+        console.error('Error fetching today\'s sessions:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch today\'s sessions' });
+    }
+}
+
+module.exports = { createSession, getSessionsByWeek, getMyUpcomingSessions, getMyUpcomingSessionsForTeacher, getMyUpcomingAsTeacher, getTodaysSessions, updateStatus, deleteSession };

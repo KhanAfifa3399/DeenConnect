@@ -168,6 +168,7 @@ export default function RegisterScreen({ navigation }) {
                   name="info"
                   size={15}
                   color={colors.primary || '#0D9488'}
+
                 />
                 <Text style={styles.noticeText}>
                   Teacher registrations require administrative verification before
